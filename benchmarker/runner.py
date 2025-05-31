@@ -153,6 +153,14 @@ class BenchmarkRunner:
             print(f"{Fore.CYAN}Difficulty: {exercise.difficulty}")
             print(f"{Fore.CYAN}{'=' * 60}")
 
+        system_prompt = f"""You are a helpful assistant that solves coding problems.
+You are given a problem and a set of test cases.
+You need to write a function that solves the problem.
+You need to write clean, working Python code.
+If an error occurs, it will be shown to you.
+Rewrite the entire code each time as only the code in the last message you send will be executed.
+"""
+
         while exercise.can_retry():
             attempt_num = exercise.attempts + 1
 
@@ -173,7 +181,9 @@ class BenchmarkRunner:
 
                 # Get response from model
                 start_time = time.time()
-                response = self.client.generate(model, prompt, temperature=0.1)
+                response = self.client.generate(
+                    model, prompt, temperature=0.0, system=system_prompt
+                )
                 generation_time = time.time() - start_time
 
                 # Clean the response to extract only code
