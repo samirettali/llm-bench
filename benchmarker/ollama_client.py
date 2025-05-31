@@ -61,6 +61,7 @@ class OllamaClient:
             "options": {
                 "temperature": temperature,
                 "num_predict": 4096,  # Max tokens to generate
+                "seed": 42,
             },
         }
 
@@ -111,6 +112,7 @@ class OllamaClient:
             "options": {
                 "temperature": temperature,
                 "num_predict": 4096,
+                "seed": 42,
             },
         }
 
