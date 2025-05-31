@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Benchmark",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "run_benchmark.py",
+            "console": "integratedTerminal",
+            "preLaunchTask": "uv_sync",
+            "args": [
+                "gemma3:4b-it-qat",
+                "--difficulty",
+                "all"
+            ],
+        }
+    ]
+}
