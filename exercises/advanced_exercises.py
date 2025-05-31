@@ -22,11 +22,11 @@ def get_advanced_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "merge_sort",
                 [
-                    ([64, 34, 25, 12, 22, 11, 90], [11, 12, 22, 25, 34, 64, 90]),
-                    ([38, 27, 43, 3, 9, 82, 10], [3, 9, 10, 27, 38, 43, 82]),
-                    ([1], [1]),
-                    ([], []),
-                    ([5, 2, 8, 1, 9], [1, 2, 5, 8, 9]),
+                    {"input": [64, 34, 25, 12, 22, 11, 90], "output": [11, 12, 22, 25, 34, 64, 90]},
+                    {"input": [38, 27, 43, 3, 9, 82, 10], "output": [3, 9, 10, 27, 38, 43, 82]},
+                    {"input": [1], "output": [1]},
+                    {"input": [], "output": []},
+                    {"input": [5, 2, 8, 1, 9], "output": [1, 2, 5, 8, 9]},
                 ],
             ),
             difficulty="hard",
@@ -41,11 +41,11 @@ def get_advanced_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "lcs_length",
                 [
-                    ("ABCDGH", "AEDFHR", 3),
-                    ("AGGTAB", "GXTXAYB", 4),
-                    ("", "ABC", 0),
-                    ("ABC", "", 0),
-                    ("ABC", "ABC", 3),
+                    {"input": ("ABCDGH", "AEDFHR"), "output": 3},
+                    {"input": ("AGGTAB", "GXTXAYB"), "output": 4},
+                    {"input": ("", "ABC"), "output": 0},
+                    {"input": ("ABC", ""), "output": 0},
+                    {"input": ("ABC", "ABC"), "output": 3},
                 ],
             ),
             difficulty="hard",
@@ -60,14 +60,14 @@ def get_advanced_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "is_valid_parentheses",
                 [
-                    ("()", True),
-                    ("()[]{}", True),
-                    ("(]", False),
-                    ("([)]", False),
-                    ("{[]}", True),
-                    ("", True),
-                    ("((()))", True),
-                    ("((())", False),
+                    {"input": "()", "output": True},
+                    {"input": "()[]{}", "output": True},
+                    {"input": "(]", "output": False},
+                    {"input": "([)]", "output": False},
+                    {"input": "{[]}", "output": True},
+                    {"input": "", "output": True},
+                    {"input": "((()))", "output": True},
+                    {"input": "((())", "output": False},
                 ],
             ),
             difficulty="hard",
@@ -82,17 +82,24 @@ def get_advanced_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "dfs",
                 [
-                    (
-                        {"A": ["B", "C"], "B": ["D"], "C": ["E"], "D": [], "E": []},
-                        "A",
-                        ["A", "B", "D", "C", "E"],
-                    ),
-                    (
-                        {"1": ["2", "3"], "2": ["4"], "3": [], "4": []},
-                        "1",
-                        ["1", "2", "4", "3"],
-                    ),
-                    ({"A": []}, "A", ["A"]),
+                    {
+                        "input": (
+                            {"A": ["B", "C"], "B": ["D"], "C": ["E"], "D": [], "E": []},
+                            "A",
+                        ),
+                        "output": ["A", "B", "D", "C", "E"],
+                    },
+                    {
+                        "input": (
+                            {"1": ["2", "3"], "2": ["4"], "3": [], "4": []},
+                            "1",
+                        ),
+                        "output": ["1", "2", "4", "3"],
+                    },
+                    {
+                        "input": ({"A": []}, "A"),
+                        "output": ["A"],
+                    },
                 ],
             ),
             difficulty="hard",
@@ -107,10 +114,10 @@ def get_advanced_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "coin_change",
                 [
-                    ([1, 3, 4], 6, 2),  # 3 + 3
-                    ([2], 3, -1),
-                    ([1], 0, 0),
-                    ([1, 2, 5], 11, 3),  # 5 + 5 + 1
+                    {"input": ([1, 3, 4], 6), "output": 2},  # 3 + 3
+                    {"input": ([2], 3), "output": -1},
+                    {"input": ([1], 0), "output": 0},
+                    {"input": ([1, 2, 5], 11), "output": 3},  # 5 + 5 + 1
                 ],
             ),
             difficulty="hard",
@@ -125,10 +132,10 @@ def get_advanced_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "max_depth",
                 [
-                    ([3, [9], [20, [15], [7]]], 3),
-                    ([1, None, [2]], 2),
-                    ([1], 1),
-                    (None, 0),
+                    {"input": [3, [9], [20, [15], [7]]], "output": 3},
+                    {"input": [1, None, [2]], "output": 2},
+                    {"input": [1], "output": 1},
+                    {"input": None, "output": 0},
                 ],
             ),
             difficulty="hard",
@@ -143,11 +150,11 @@ def get_advanced_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "pattern_match",
                 [
-                    ("aa", "a", False),
-                    ("aa", "a*", True),
-                    ("ab", ".*", True),
-                    ("aab", "c*a*b", True),
-                    ("mississippi", "mis*is*p*.", False),
+                    {"input": ("aa", "a"), "output": False},
+                    {"input": ("aa", "a*"), "output": True},
+                    {"input": ("ab", ".*"), "output": True},
+                    {"input": ("aab", "c*a*b"), "output": True},
+                    {"input": ("mississippi", "mis*is*p*."), "output": False},
                 ],
             ),
             difficulty="hard",
@@ -162,7 +169,7 @@ def get_advanced_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "test_lru_cache",
                 [
-                    (None, True)  # This will be a custom test
+                    {"input": None, "output": True}  # This will be a custom test
                 ],
             ),
             difficulty="hard",

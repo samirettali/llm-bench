@@ -182,15 +182,18 @@ def create_code_execution_test(
 
 
 def create_function_test(
-    function_name: str, test_cases: List[tuple]
+    function_name: str, test_cases: List[Dict[str, Any]]
 ) -> Callable[[str], ExerciseResult]:
     """
     Create a test function that tests a specific function with multiple test cases.
 
     Args:
         function_name: Name of the function to test
-        test_cases: List of tuples where all values except the last are inputs,
-                   and the last value is the expected output
+        test_cases: List of dictionaries with 'input' and 'output' keys
+                   where 'input' can be:
+                   - A single value (scalar, list, tuple, etc.) for single-argument functions
+                   - A tuple/list of multiple values to be unpacked as separate arguments
+                   and 'output' is the expected result
 
     Returns:
         A test function that can be used with Exercise
@@ -212,22 +215,39 @@ def create_function_test(
 
             # Test all cases
             for i, test_case in enumerate(test_cases):
-                if len(test_case) < 2:
+                if 'input' not in test_case or 'output' not in test_case:
                     return ExerciseResult(
                         status=ExerciseStatus.ERROR,
-                        error_message=f"Test case {i + 1} must have at least 2 values (inputs and expected output)",
+                        error_message=f"Test case {i + 1} must have 'input' and 'output' fields",
                     )
 
-                # Split test case into inputs and expected output
-                # All values except the last are inputs, last value is expected
-                inputs = test_case[:-1]
-                expected = test_case[-1]
+                inputs = test_case['input']
+                expected = test_case['output']
 
                 # Call function with inputs
-                if len(inputs) == 1:
-                    actual = func(inputs[0])
-                else:
-                    actual = func(*inputs)
+                # If inputs is a tuple with multiple elements, unpack them as separate arguments
+                # Otherwise, pass inputs as a single argument (even if it's a tuple/list)
+                try:
+                    if isinstance(inputs, tuple) and len(inputs) > 1:
+                        # This is for functions that take multiple arguments
+                        actual = func(*inputs)
+                    else:
+                        # This is for functions that take a single argument
+                        # (which could be a scalar, list, tuple, etc.)
+                        actual = func(inputs)
+                except TypeError as e:
+                    # If we get a TypeError, it might be because we need to try the other way
+                    # This handles edge cases where the distinction isn't clear
+                    try:
+                        if isinstance(inputs, tuple) and len(inputs) > 1:
+                            actual = func(inputs)
+                        else:
+                            actual = func(*inputs) if isinstance(inputs, (tuple, list)) else func(inputs)
+                    except:
+                        return ExerciseResult(
+                            status=ExerciseStatus.ERROR,
+                            error_message=f"Test case {i + 1} failed to execute: {str(e)}",
+                        )
 
                 if actual != expected:
                     return ExerciseResult(

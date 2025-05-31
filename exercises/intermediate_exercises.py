@@ -20,7 +20,14 @@ def get_intermediate_exercises() -> List[Exercise]:
             name="Factorial Function",
             description="Write a function called 'factorial' that calculates the factorial of a number (n!).",
             test_function=create_function_test(
-                "factorial", [(0, 1), (1, 1), (5, 120), (4, 24), (3, 6)]
+                "factorial",
+                [
+                    {"input": 0, "output": 1},
+                    {"input": 1, "output": 1},
+                    {"input": 5, "output": 120},
+                    {"input": 4, "output": 24},
+                    {"input": 3, "output": 6},
+                ],
             ),
             difficulty="medium",
         )
@@ -32,7 +39,16 @@ def get_intermediate_exercises() -> List[Exercise]:
             name="Fibonacci Sequence",
             description="Write a function called 'fibonacci' that returns the nth number in the Fibonacci sequence (starting with 0, 1).",
             test_function=create_function_test(
-                "fibonacci", [(0, 0), (1, 1), (2, 1), (3, 2), (4, 3), (5, 5), (6, 8)]
+                "fibonacci",
+                [
+                    {"input": 0, "output": 0},
+                    {"input": 1, "output": 1},
+                    {"input": 2, "output": 1},
+                    {"input": 3, "output": 2},
+                    {"input": 4, "output": 3},
+                    {"input": 5, "output": 5},
+                    {"input": 6, "output": 8},
+                ],
             ),
             difficulty="medium",
         )
@@ -46,14 +62,14 @@ def get_intermediate_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "is_prime",
                 [
-                    (2, True),
-                    (3, True),
-                    (4, False),
-                    (17, True),
-                    (1, False),
-                    (0, False),
-                    (25, False),
-                    (29, True),
+                    {"input": 2, "output": True},
+                    {"input": 3, "output": True},
+                    {"input": 4, "output": False},
+                    {"input": 17, "output": True},
+                    {"input": 1, "output": False},
+                    {"input": 0, "output": False},
+                    {"input": 25, "output": False},
+                    {"input": 29, "output": True},
                 ],
             ),
             difficulty="medium",
@@ -68,12 +84,12 @@ def get_intermediate_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "is_palindrome",
                 [
-                    ("racecar", True),
-                    ("hello", False),
-                    ("A man a plan a canal Panama", True),
-                    ("race a car", False),
-                    ("", True),
-                    ("a", True),
+                    {"input": "racecar", "output": True},
+                    {"input": "hello", "output": False},
+                    {"input": "A man a plan a canal Panama", "output": True},
+                    {"input": "race a car", "output": False},
+                    {"input": "", "output": True},
+                    {"input": "a", "output": True},
                 ],
             ),
             difficulty="medium",
@@ -88,10 +104,10 @@ def get_intermediate_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "bubble_sort",
                 [
-                    ([64, 34, 25, 12, 22, 11, 90], [11, 12, 22, 25, 34, 64, 90]),
-                    ([5, 1, 4, 2, 8], [1, 2, 4, 5, 8]),
-                    ([1], [1]),
-                    ([], []),
+                    {"input": [64, 34, 25, 12, 22, 11, 90], "output": [11, 12, 22, 25, 34, 64, 90]},
+                    {"input": [5, 1, 4, 2, 8], "output": [1, 2, 4, 5, 8]},
+                    {"input": [1], "output": [1]},
+                    {"input": [], "output": []},
                 ],
             ),
             difficulty="medium",
@@ -106,10 +122,10 @@ def get_intermediate_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "word_count",
                 [
-                    ("hello world", {"hello": 1, "world": 1}),
-                    (
-                        "the quick brown fox jumps over the lazy dog",
-                        {
+                    {"input": "hello world", "output": {"hello": 1, "world": 1}},
+                    {
+                        "input": "the quick brown fox jumps over the lazy dog",
+                        "output": {
                             "the": 2,
                             "quick": 1,
                             "brown": 1,
@@ -119,9 +135,9 @@ def get_intermediate_exercises() -> List[Exercise]:
                             "lazy": 1,
                             "dog": 1,
                         },
-                    ),
-                    ("", {}),
-                    ("hello hello hello", {"hello": 3}),
+                    },
+                    {"input": "", "output": {}},
+                    {"input": "hello hello hello", "output": {"hello": 3}},
                 ],
             ),
             difficulty="medium",
@@ -136,11 +152,11 @@ def get_intermediate_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "binary_search",
                 [
-                    ([1, 2, 3, 4, 5], 3, 2),
-                    ([1, 2, 3, 4, 5], 6, -1),
-                    ([1, 2, 3, 4, 5], 1, 0),
-                    ([1, 2, 3, 4, 5], 5, 4),
-                    ([], 1, -1),
+                    {"input": ([1, 2, 3, 4, 5], 3), "output": 2},
+                    {"input": ([1, 2, 3, 4, 5], 6), "output": -1},
+                    {"input": ([1, 2, 3, 4, 5], 1), "output": 0},
+                    {"input": ([1, 2, 3, 4, 5], 5), "output": 4},
+                    {"input": ([], 1), "output": -1},
                 ],
             ),
             difficulty="medium",
@@ -155,11 +171,11 @@ def get_intermediate_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "are_anagrams",
                 [
-                    ("listen", "silent", True),
-                    ("hello", "world", False),
-                    ("The Eyes", "They See", True),
-                    ("", "", True),
-                    ("a", "b", False),
+                    {"input": ("listen", "silent"), "output": True},
+                    {"input": ("hello", "world"), "output": False},
+                    {"input": ("The Eyes", "They See"), "output": True},
+                    {"input": ("", ""), "output": True},
+                    {"input": ("a", "b"), "output": False},
                 ],
             ),
             difficulty="medium",

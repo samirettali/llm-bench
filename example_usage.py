@@ -14,7 +14,13 @@ def custom_exercise_example():
         name="Custom String Length",
         description="Write a function called 'string_length' that returns the length of a string without using len().",
         test_function=create_function_test(
-            "string_length", [("hello", 5), ("", 0), ("Python", 6), ("a", 1)]
+            "string_length",
+            [
+                {"input": "hello", "output": 5},
+                {"input": "", "output": 0},
+                {"input": "Python", "output": 6},
+                {"input": "a", "output": 1},
+            ],
         ),
         difficulty="easy",
         max_attempts=2,
@@ -110,7 +116,13 @@ def demonstrate_error_feedback():
     exercise = Exercise(
         name="Fibonacci",
         description="Write a function called 'fibonacci' that returns the nth Fibonacci number.",
-        test_function=create_function_test("fibonacci", [(5, 5), (6, 8)]),
+        test_function=create_function_test(
+            "fibonacci",
+            [
+                {"input": 5, "output": 5},
+                {"input": 6, "output": 8},
+            ],
+        ),
         max_attempts=3,
     )
 
