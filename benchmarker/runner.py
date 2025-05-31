@@ -1,0 +1,373 @@
+"""
+Main benchmark runner that coordinates exercises and model evaluation.
+"""
+
+import time
+import json
+from typing import List, Dict, Any, Optional
+from dataclasses import dataclass, asdict
+from colorama import Fore, Back, Style, init
+
+from .exercise import Exercise, ExerciseResult, ExerciseStatus
+from .ollama_client import OllamaClient
+
+# Initialize colorama for cross-platform colored output
+init(autoreset=True)
+
+
+@dataclass
+class BenchmarkStats:
+    """Statistics for a benchmark run."""
+
+    total_exercises: int
+    passed_exercises: int
+    failed_exercises: int
+    error_exercises: int
+    total_attempts: int
+    total_time: float
+    model_name: str
+
+    @property
+    def success_rate(self) -> float:
+        """Calculate success rate as percentage."""
+        if self.total_exercises == 0:
+            return 0.0
+        return (self.passed_exercises / self.total_exercises) * 100
+
+    @property
+    def average_attempts(self) -> float:
+        """Calculate average attempts per exercise."""
+        if self.total_exercises == 0:
+            return 0.0
+        return self.total_attempts / self.total_exercises
+
+
+class BenchmarkRunner:
+    """Main class for running LLM benchmarks."""
+
+    def __init__(
+        self,
+        ollama_client: Optional[OllamaClient] = None,
+        verbose: bool = True,
+        save_results: bool = True,
+    ):
+        self.client = ollama_client or OllamaClient()
+        self.verbose = verbose
+        self.save_results = save_results
+        self.exercises: List[Exercise] = []
+        self.current_stats: Optional[BenchmarkStats] = None
+
+    def add_exercise(self, exercise: Exercise):
+        """Add an exercise to the benchmark suite."""
+        self.exercises.append(exercise)
+
+    def add_exercises(self, exercises: List[Exercise]):
+        """Add multiple exercises to the benchmark suite."""
+        self.exercises.extend(exercises)
+
+    def clean_code_response(self, response: str) -> str:
+        """
+        Clean the model's response to extract only the code.
+        Removes markdown formatting and explanations.
+        """
+        lines = response.strip().split("\n")
+        code_lines = []
+        in_code_block = False
+
+        for line in lines:
+            # Skip markdown code block delimiters
+            if line.strip().startswith("```"):
+                in_code_block = not in_code_block
+                continue
+
+            # If we're in a markdown code block, take everything
+            if in_code_block:
+                code_lines.append(line)
+                continue
+
+            # Skip lines that look like explanations
+            stripped = line.strip()
+            if not stripped:
+                continue
+
+            # Skip obvious explanation patterns
+            explanation_patterns = [
+                "here is",
+                "here's",
+                "this code",
+                "this function",
+                "explanation:",
+                "solution:",
+                "answer:",
+                "output:",
+                "the above",
+                "this will",
+                "this should",
+            ]
+
+            if any(pattern in stripped.lower() for pattern in explanation_patterns):
+                continue
+
+            # If the line looks like code (contains common code patterns)
+            code_patterns = [
+                "def ",
+                "import ",
+                "from ",
+                "=",
+                "if ",
+                "for ",
+                "while ",
+                "class ",
+                "return",
+                "print(",
+            ]
+            if any(pattern in line for pattern in code_patterns) or line.startswith(
+                "    "
+            ):
+                code_lines.append(line)
+            elif (
+                code_lines
+            ):  # If we've started collecting code, include continuation lines
+                code_lines.append(line)
+
+        # If no clear code was found, return the original response
+        if not code_lines:
+            return response.strip()
+
+        return "\n".join(code_lines).strip()
+
+    def run_exercise(self, exercise: Exercise, model: str) -> bool:
+        """
+        Run a single exercise with the specified model.
+
+        Args:
+            exercise: The exercise to run
+            model: Name of the model to use
+
+        Returns:
+            True if the exercise was completed successfully
+        """
+        if self.verbose:
+            print(f"\n{Fore.CYAN}{'=' * 60}")
+            print(f"{Fore.CYAN}Running Exercise: {exercise.name}")
+            print(f"{Fore.CYAN}Difficulty: {exercise.difficulty}")
+            print(f"{Fore.CYAN}{'=' * 60}")
+
+        while exercise.can_retry():
+            attempt_num = exercise.attempts + 1
+
+            if self.verbose:
+                print(f"\n{Fore.YELLOW}Attempt {attempt_num}/{exercise.max_attempts}")
+
+            try:
+                # Determine which prompt to use
+                if exercise.attempts == 0:
+                    prompt = exercise.get_prompt()
+                else:
+                    # Get the last result for retry prompt
+                    last_result = exercise.results[-1]
+                    prompt = exercise.get_retry_prompt(last_result)
+
+                if self.verbose and attempt_num > 1:
+                    print(f"{Fore.YELLOW}Retrying with error feedback...")
+
+                # Get response from model
+                start_time = time.time()
+                response = self.client.generate(model, prompt, temperature=0.1)
+                generation_time = time.time() - start_time
+
+                # Clean the response to extract only code
+                code = self.clean_code_response(response)
+
+                if self.verbose:
+                    print(f"{Fore.BLUE}Generated code:")
+                    print(f"{Fore.WHITE}{code}")
+
+                # Execute the exercise
+                result = exercise.execute(code)
+                result.execution_time = generation_time
+
+                # Display result
+                if result.status == ExerciseStatus.PASSED:
+                    if self.verbose:
+                        print(f"\n{Fore.GREEN}✓ PASSED!")
+                        if result.actual_output is not None:
+                            print(f"{Fore.GREEN}Output: {result.actual_output}")
+                    return True
+
+                elif result.status == ExerciseStatus.FAILED:
+                    if self.verbose:
+                        print(f"\n{Fore.RED}✗ FAILED")
+                        print(f"{Fore.RED}Expected: {result.expected_output}")
+                        print(f"{Fore.RED}Got: {result.actual_output}")
+
+                elif result.status == ExerciseStatus.ERROR:
+                    if self.verbose:
+                        print(f"\n{Fore.RED}✗ ERROR")
+                        print(f"{Fore.RED}Error: {result.error_message}")
+
+            except Exception as e:
+                if self.verbose:
+                    print(f"\n{Fore.RED}✗ SYSTEM ERROR: {str(e)}")
+
+                # Create an error result
+                error_result = ExerciseResult(
+                    status=ExerciseStatus.ERROR, error_message=f"System error: {str(e)}"
+                )
+                exercise.results.append(error_result)
+                exercise.attempts += 1
+
+        if self.verbose:
+            print(f"\n{Fore.RED}Exercise failed after {exercise.max_attempts} attempts")
+
+        return False
+
+    def run_benchmark(self, model: str) -> BenchmarkStats:
+        """
+        Run the complete benchmark suite with the specified model.
+
+        Args:
+            model: Name of the model to use
+
+        Returns:
+            BenchmarkStats object with results
+        """
+        if not self.client.is_available():
+            raise Exception(
+                "Ollama is not available. Make sure it's running on the expected port."
+            )
+
+        # Check if model is available
+        available_models = self.client.list_models()
+        if model not in available_models:
+            print(f"{Fore.YELLOW}Model '{model}' not found. Attempting to pull...")
+            if not self.client.pull_model(model):
+                raise Exception(f"Failed to pull model '{model}'")
+
+        if self.verbose:
+            print(f"\n{Fore.MAGENTA}{'=' * 70}")
+            print(f"{Fore.MAGENTA}Starting LLM Benchmark")
+            print(f"{Fore.MAGENTA}Model: {model}")
+            print(f"{Fore.MAGENTA}Total Exercises: {len(self.exercises)}")
+            print(f"{Fore.MAGENTA}{'=' * 70}")
+
+        start_time = time.time()
+        passed = 0
+        failed = 0
+        errors = 0
+        total_attempts = 0
+
+        for i, exercise in enumerate(self.exercises, 1):
+            if self.verbose:
+                print(f"\n{Fore.MAGENTA}Progress: {i}/{len(self.exercises)}")
+
+            success = self.run_exercise(exercise, model)
+            total_attempts += exercise.attempts
+
+            if success:
+                passed += 1
+            else:
+                # Determine if it was a failure or error
+                if (
+                    exercise.results
+                    and exercise.results[-1].status == ExerciseStatus.ERROR
+                ):
+                    errors += 1
+                else:
+                    failed += 1
+
+        total_time = time.time() - start_time
+
+        # Create stats
+        stats = BenchmarkStats(
+            total_exercises=len(self.exercises),
+            passed_exercises=passed,
+            failed_exercises=failed,
+            error_exercises=errors,
+            total_attempts=total_attempts,
+            total_time=total_time,
+            model_name=model,
+        )
+
+        self.current_stats = stats
+
+        # Display summary
+        if self.verbose:
+            self._display_summary(stats)
+
+        # Save results if requested
+        if self.save_results:
+            self._save_results(stats)
+
+        return stats
+
+    def _display_summary(self, stats: BenchmarkStats):
+        """Display a summary of the benchmark results."""
+        print(f"\n{Fore.MAGENTA}{'=' * 70}")
+        print(f"{Fore.MAGENTA}BENCHMARK SUMMARY")
+        print(f"{Fore.MAGENTA}{'=' * 70}")
+        print(f"{Fore.WHITE}Model: {stats.model_name}")
+        print(f"{Fore.WHITE}Total Exercises: {stats.total_exercises}")
+        print(f"{Fore.GREEN}Passed: {stats.passed_exercises}")
+        print(f"{Fore.RED}Failed: {stats.failed_exercises}")
+        print(f"{Fore.RED}Errors: {stats.error_exercises}")
+        print(f"{Fore.CYAN}Success Rate: {stats.success_rate:.1f}%")
+        print(f"{Fore.CYAN}Average Attempts: {stats.average_attempts:.1f}")
+        print(f"{Fore.CYAN}Total Time: {stats.total_time:.1f} seconds")
+        print(f"{Fore.MAGENTA}{'=' * 70}")
+
+    def _save_results(self, stats: BenchmarkStats):
+        """Save detailed results to a JSON file."""
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        filename = f"benchmark_results_{stats.model_name}_{timestamp}.json"
+
+        # Prepare detailed results
+        detailed_results = {"stats": asdict(stats), "exercises": []}
+
+        for exercise in self.exercises:
+            exercise_data = {
+                "name": exercise.name,
+                "description": exercise.description,
+                "difficulty": exercise.difficulty,
+                "max_attempts": exercise.max_attempts,
+                "attempts": exercise.attempts,
+                "completed": exercise.is_completed(),
+                "results": [],
+            }
+
+            for result in exercise.results:
+                result_data = {
+                    "status": result.status.value,
+                    "expected_output": result.expected_output,
+                    "actual_output": result.actual_output,
+                    "error_message": result.error_message,
+                    "execution_time": result.execution_time,
+                    "code_generated": result.code_generated,
+                }
+                exercise_data["results"].append(result_data)
+
+            detailed_results["exercises"].append(exercise_data)
+
+        try:
+            with open(filename, "w") as f:
+                json.dump(detailed_results, f, indent=2, default=str)
+
+            if self.verbose:
+                print(f"\n{Fore.CYAN}Results saved to: {filename}")
+
+        except Exception as e:
+            if self.verbose:
+                print(f"\n{Fore.YELLOW}Warning: Could not save results to file: {e}")
+
+    def get_exercise_by_name(self, name: str) -> Optional[Exercise]:
+        """Get an exercise by name."""
+        for exercise in self.exercises:
+            if exercise.name == name:
+                return exercise
+        return None
+
+    def reset_exercises(self):
+        """Reset all exercises to their initial state."""
+        for exercise in self.exercises:
+            exercise.attempts = 0
+            exercise.results = []
