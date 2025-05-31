@@ -64,7 +64,7 @@ def get_intermediate_exercises() -> List[Exercise]:
     exercises.append(
         Exercise(
             name="Palindrome Check",
-            description="Write a function called 'is_palindrome' that checks if a string reads the same forwards and backwards (ignore case).",
+            description="Write a function called 'is_palindrome' that checks if a string reads the same forwards and backwards (ignore case and spaces).",
             test_function=create_function_test(
                 "is_palindrome",
                 [

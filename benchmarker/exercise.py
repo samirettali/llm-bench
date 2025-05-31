@@ -189,7 +189,8 @@ def create_function_test(
 
     Args:
         function_name: Name of the function to test
-        test_cases: List of (inputs, expected_output) tuples
+        test_cases: List of tuples where all values except the last are inputs,
+                   and the last value is the expected output
 
     Returns:
         A test function that can be used with Exercise
@@ -210,11 +211,23 @@ def create_function_test(
             func = namespace[function_name]
 
             # Test all cases
-            for i, (inputs, expected) in enumerate(test_cases):
-                if isinstance(inputs, tuple):
-                    actual = func(*inputs)
+            for i, test_case in enumerate(test_cases):
+                if len(test_case) < 2:
+                    return ExerciseResult(
+                        status=ExerciseStatus.ERROR,
+                        error_message=f"Test case {i + 1} must have at least 2 values (inputs and expected output)",
+                    )
+
+                # Split test case into inputs and expected output
+                # All values except the last are inputs, last value is expected
+                inputs = test_case[:-1]
+                expected = test_case[-1]
+
+                # Call function with inputs
+                if len(inputs) == 1:
+                    actual = func(inputs[0])
                 else:
-                    actual = func(inputs)
+                    actual = func(*inputs)
 
                 if actual != expected:
                     return ExerciseResult(
