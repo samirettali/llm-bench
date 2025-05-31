@@ -215,14 +215,14 @@ def create_function_test(
 
             # Test all cases
             for i, test_case in enumerate(test_cases):
-                if 'input' not in test_case or 'output' not in test_case:
+                if "input" not in test_case or "output" not in test_case:
                     return ExerciseResult(
                         status=ExerciseStatus.ERROR,
                         error_message=f"Test case {i + 1} must have 'input' and 'output' fields",
                     )
 
-                inputs = test_case['input']
-                expected = test_case['output']
+                inputs = test_case["input"]
+                expected = test_case["output"]
 
                 # Call function with inputs
                 # If inputs is a tuple with multiple elements, unpack them as separate arguments
@@ -242,7 +242,11 @@ def create_function_test(
                         if isinstance(inputs, tuple) and len(inputs) > 1:
                             actual = func(inputs)
                         else:
-                            actual = func(*inputs) if isinstance(inputs, (tuple, list)) else func(inputs)
+                            actual = (
+                                func(*inputs)
+                                if isinstance(inputs, (tuple, list))
+                                else func(inputs)
+                            )
                     except:
                         return ExerciseResult(
                             status=ExerciseStatus.ERROR,

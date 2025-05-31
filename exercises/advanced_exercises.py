@@ -22,8 +22,14 @@ def get_advanced_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "merge_sort",
                 [
-                    {"input": [64, 34, 25, 12, 22, 11, 90], "output": [11, 12, 22, 25, 34, 64, 90]},
-                    {"input": [38, 27, 43, 3, 9, 82, 10], "output": [3, 9, 10, 27, 38, 43, 82]},
+                    {
+                        "input": [64, 34, 25, 12, 22, 11, 90],
+                        "output": [11, 12, 22, 25, 34, 64, 90],
+                    },
+                    {
+                        "input": [38, 27, 43, 3, 9, 82, 10],
+                        "output": [3, 9, 10, 27, 38, 43, 82],
+                    },
                     {"input": [1], "output": [1]},
                     {"input": [], "output": []},
                     {"input": [5, 2, 8, 1, 9], "output": [1, 2, 5, 8, 9]},

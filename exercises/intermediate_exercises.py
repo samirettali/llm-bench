@@ -104,7 +104,10 @@ def get_intermediate_exercises() -> List[Exercise]:
             test_function=create_function_test(
                 "bubble_sort",
                 [
-                    {"input": [64, 34, 25, 12, 22, 11, 90], "output": [11, 12, 22, 25, 34, 64, 90]},
+                    {
+                        "input": [64, 34, 25, 12, 22, 11, 90],
+                        "output": [11, 12, 22, 25, 34, 64, 90],
+                    },
                     {"input": [5, 1, 4, 2, 8], "output": [1, 2, 4, 5, 8]},
                     {"input": [1], "output": [1]},
                     {"input": [], "output": []},

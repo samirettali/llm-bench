@@ -12,6 +12,7 @@ from exercises import (
     get_basic_exercises,
     get_intermediate_exercises,
     get_advanced_exercises,
+    get_super_hard_exercises,
 )
 
 
@@ -23,7 +24,7 @@ def parse_arguments():
     parser.add_argument("model", help="Name of the Ollama model to benchmark")
     parser.add_argument(
         "--difficulty",
-        choices=["basic", "intermediate", "advanced", "all"],
+        choices=["basic", "intermediate", "advanced", "super_hard", "all"],
         default="all",
         help="Difficulty level of exercises to run",
     )
@@ -64,6 +65,12 @@ def load_exercises(difficulty: str, max_attempts: int) -> List:
         for exercise in advanced_exercises:
             exercise.max_attempts = max_attempts
         exercises.extend(advanced_exercises)
+
+    if difficulty in ["super_hard", "all"]:
+        super_hard_exercises = get_super_hard_exercises()
+        for exercise in super_hard_exercises:
+            exercise.max_attempts = max_attempts
+        exercises.extend(super_hard_exercises)
 
     return exercises
 
