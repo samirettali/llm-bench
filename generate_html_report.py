@@ -14,7 +14,7 @@ from typing import Dict, Any
 def load_benchmark_results(json_file: str) -> Dict[str, Any]:
     """Load benchmark results from JSON file."""
     try:
-        with open(json_file, 'r') as f:
+        with open(json_file, "r") as f:
             return json.load(f)
     except Exception as e:
         raise Exception(f"Failed to load JSON file: {e}")
@@ -25,19 +25,14 @@ def format_code(code: str) -> str:
     if not code:
         return ""
     # Escape HTML characters and preserve formatting
-    code = code.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    code = code.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     return code
 
 
 def get_status_icon(status: str) -> str:
     """Get icon for exercise status."""
-    icons = {
-        'passed': '✅',
-        'failed': '❌', 
-        'error': '⚠️',
-        'pending': '⏳'
-    }
-    return icons.get(status, '❓')
+    icons = {"passed": "✅", "failed": "❌", "error": "⚠️", "pending": "⏳"}
+    return icons.get(status, "❓")
 
 
 def get_status_class(status: str) -> str:
@@ -47,26 +42,28 @@ def get_status_class(status: str) -> str:
 
 def generate_html_report(data: Dict[str, Any], output_file: str = None) -> str:
     """Generate HTML report from benchmark data."""
-    
-    stats = data['stats']
-    exercises = data['exercises']
-    
+
+    stats = data["stats"]
+    exercises = data["exercises"]
+
     # Generate output filename if not provided
     if not output_file:
-        model_name = stats['model_name'].replace(':', '_')
+        model_name = stats["model_name"].replace(":", "_")
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_file = f"benchmark_report_{model_name}_{timestamp}.html"
-    
+
     # Calculate additional statistics
-    total_time = stats['total_time']
-    avg_time_per_exercise = total_time / stats['total_exercises'] if stats['total_exercises'] > 0 else 0
-    
+    total_time = stats["total_time"]
+    avg_time_per_exercise = (
+        total_time / stats["total_exercises"] if stats["total_exercises"] > 0 else 0
+    )
+
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LLM Benchmark Report - {stats['model_name']}</title>
+    <title>LLM Benchmark Report - {stats["model_name"]}</title>
     
     <!-- Highlight.js for syntax highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -208,9 +205,23 @@ def generate_html_report(data: Dict[str, Any], output_file: str = None) -> str:
             text-transform: uppercase;
         }}
         
-        .difficulty-easy {{ background: #d4edda; color: #155724; }}
-        .difficulty-medium {{ background: #fff3cd; color: #856404; }}
-        .difficulty-hard {{ background: #f8d7da; color: #721c24; }}
+        .difficulty-easy {background: linear-gradient(135deg, #4CAF50, #66BB6A);
+            color: white;
+        }
+        
+        .difficulty-medium {background: linear-gradient(135deg, #FF9800, #FFB74D);
+            color: white;
+        }
+        
+        .difficulty-hard {background: linear-gradient(135deg, #F44336, #EF5350);
+            color: white;
+        }
+        
+        .difficulty-super_hard {background: linear-gradient(135deg, #9C27B0, #BA68C8);
+            color: white;
+            border: 2px solid #7B1FA2;
+            box-shadow: 0 0 10px rgba(156, 39, 176, 0.3);
+        }
         
         .attempt-info {{
             font-size: 0.9em;
@@ -404,33 +415,33 @@ def generate_html_report(data: Dict[str, Any], output_file: str = None) -> str:
     <div class="container">
         <div class="report-header">
             <h1 class="report-title">🤖 LLM Benchmark Report</h1>
-            <div class="model-name">Model: <strong>{stats['model_name']}</strong></div>
+            <div class="model-name">Model: <strong>{stats["model_name"]}</strong></div>
             
-            <div class="success-rate">{stats['success_rate']:.1f}% Success Rate</div>
+            <div class="success-rate">{stats["success_rate"]:.1f}% Success Rate</div>
             
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-value">{stats['total_exercises']}</div>
+                    <div class="stat-value">{stats["total_exercises"]}</div>
                     <div class="stat-label">Total Exercises</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">{stats['passed_exercises']}</div>
+                    <div class="stat-value">{stats["passed_exercises"]}</div>
                     <div class="stat-label">Passed</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">{stats['failed_exercises']}</div>
+                    <div class="stat-value">{stats["failed_exercises"]}</div>
                     <div class="stat-label">Failed</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">{stats['error_exercises']}</div>
+                    <div class="stat-value">{stats["error_exercises"]}</div>
                     <div class="stat-label">Errors</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">{stats['total_attempts']}</div>
+                    <div class="stat-value">{stats["total_attempts"]}</div>
                     <div class="stat-label">Total Attempts</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">{stats['average_attempts']:.1f}</div>
+                    <div class="stat-value">{stats["average_attempts"]:.1f}</div>
                     <div class="stat-label">Avg Attempts</div>
                 </div>
                 <div class="stat-card">
@@ -447,68 +458,72 @@ def generate_html_report(data: Dict[str, Any], output_file: str = None) -> str:
         <div class="exercises-container">
             <h2 class="section-title">📋 Exercise Results</h2>
 """
-    
+
     # Add exercises
     for i, exercise in enumerate(exercises, 1):
-        completed_badge = "✅ Completed" if exercise['completed'] else "❌ Failed"
-        completed_class = "badge-success" if exercise['completed'] else "badge-danger"
-        
+        completed_badge = "✅ Completed" if exercise["completed"] else "❌ Failed"
+        completed_class = "badge-success" if exercise["completed"] else "badge-danger"
+
         html_content += f"""
             <div class="exercise">
                 <div class="exercise-header">
                     <div>
-                        <div class="exercise-title">{i}. {exercise['name']}</div>
+                        <div class="exercise-title">{i}. {exercise["name"]}</div>
                         <div class="exercise-meta">
-                            <span class="difficulty difficulty-{exercise['difficulty']}">{exercise['difficulty']}</span>
+                            <span class="difficulty difficulty-{exercise["difficulty"]}">{exercise["difficulty"]}</span>
                             <span class="summary-badge {completed_class}">{completed_badge}</span>
-                            <span class="attempt-info">{exercise['attempts']}/{exercise['max_attempts']} attempts</span>
+                            <span class="attempt-info">{exercise["attempts"]}/{exercise["max_attempts"]} attempts</span>
                         </div>
                     </div>
                 </div>
                 
                 <div class="exercise-description">
-                    {exercise['description']}
+                    {exercise["description"]}
                 </div>
                 
                 <div class="attempts">
 """
-        
+
         # Add attempts
-        for attempt_num, result in enumerate(exercise['results'], 1):
-            status_icon = get_status_icon(result['status'])
-            status_class = get_status_class(result['status'])
-            execution_time = result.get('execution_time', 0)
-            
+        for attempt_num, result in enumerate(exercise["results"], 1):
+            status_icon = get_status_icon(result["status"])
+            status_class = get_status_class(result["status"])
+            execution_time = result.get("execution_time", 0)
+
             html_content += f"""
                     <div class="attempt">
                         <div class="attempt-header {status_class}">
-                            <span><strong>Attempt {attempt_num}</strong> {status_icon} {result['status'].title()}</span>
+                            <span><strong>Attempt {attempt_num}</strong> {status_icon} {result["status"].title()}</span>
                             <span class="execution-time">⏱️ {execution_time:.2f}s</span>
                         </div>
 """
-            
+
             # Add error message if present
-            if result.get('error_message'):
+            if result.get("error_message"):
                 html_content += f"""
                         <div class="error-message">
-                            <strong>Error:</strong> {result['error_message']}
+                            <strong>Error:</strong> {result["error_message"]}
                         </div>
 """
-            
+
             # Add output information for failed tests
-            if result['status'] == 'failed' and result.get('expected_output') and result.get('actual_output'):
+            if (
+                result["status"] == "failed"
+                and result.get("expected_output")
+                and result.get("actual_output")
+            ):
                 html_content += f"""
                         <div class="output-section">
                             <div class="output-label">Expected Output:</div>
-                            <div class="output-value">{result['expected_output']}</div>
+                            <div class="output-value">{result["expected_output"]}</div>
                             <div class="output-label" style="margin-top: 10px;">Actual Output:</div>
-                            <div class="output-value">{result['actual_output']}</div>
+                            <div class="output-value">{result["actual_output"]}</div>
                         </div>
 """
-            
+
             # Add generated code with syntax highlighting
-            if result.get('code_generated'):
-                formatted_code = format_code(result['code_generated'])
+            if result.get("code_generated"):
+                formatted_code = format_code(result["code_generated"])
                 code_id = f"code_{i}_{attempt_num}"
                 html_content += f"""
                         <div class="code-container">
@@ -519,14 +534,14 @@ def generate_html_report(data: Dict[str, Any], output_file: str = None) -> str:
                             <pre><code id="{code_id}" class="language-python hljs">{formatted_code}</code></pre>
                         </div>
 """
-            
+
             html_content += "                    </div>\n"
-        
+
         html_content += """
                 </div>
             </div>
 """
-    
+
     # Close HTML with JavaScript for syntax highlighting and copy functionality
     html_content += f"""
         </div>
@@ -576,45 +591,57 @@ def generate_html_report(data: Dict[str, Any], output_file: str = None) -> str:
     </script>
 </body>
 </html>"""
-    
+
     return html_content, output_file
 
 
 def main():
     """Main function to generate HTML report."""
-    parser = argparse.ArgumentParser(description="Generate HTML report from LLM benchmark JSON results")
+    parser = argparse.ArgumentParser(
+        description="Generate HTML report from LLM benchmark JSON results"
+    )
     parser.add_argument("json_file", help="Path to the benchmark results JSON file")
     parser.add_argument("-o", "--output", help="Output HTML file name")
-    
+
     args = parser.parse_args()
-    
+
     try:
         # Load benchmark results
         print(f"Loading benchmark results from {args.json_file}...")
         data = load_benchmark_results(args.json_file)
-        
+
         # Add calculated stats
-        stats = data['stats']
-        stats['success_rate'] = (stats['passed_exercises'] / stats['total_exercises']) * 100 if stats['total_exercises'] > 0 else 0
-        stats['average_attempts'] = stats['total_attempts'] / stats['total_exercises'] if stats['total_exercises'] > 0 else 0
-        
+        stats = data["stats"]
+        stats["success_rate"] = (
+            (stats["passed_exercises"] / stats["total_exercises"]) * 100
+            if stats["total_exercises"] > 0
+            else 0
+        )
+        stats["average_attempts"] = (
+            stats["total_attempts"] / stats["total_exercises"]
+            if stats["total_exercises"] > 0
+            else 0
+        )
+
         # Generate HTML report
         print("Generating HTML report...")
         html_content, output_file = generate_html_report(data, args.output)
-        
+
         # Write HTML file
-        with open(output_file, 'w', encoding='utf-8') as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             f.write(html_content)
-        
+
         print(f"✅ HTML report generated successfully: {output_file}")
-        print(f"📊 Summary: {stats['passed_exercises']}/{stats['total_exercises']} exercises passed ({stats['success_rate']:.1f}% success rate)")
-        
+        print(
+            f"📊 Summary: {stats['passed_exercises']}/{stats['total_exercises']} exercises passed ({stats['success_rate']:.1f}% success rate)"
+        )
+
     except Exception as e:
         print(f"❌ Error generating report: {e}")
         return 1
-    
+
     return 0
 
 
 if __name__ == "__main__":
-    exit(main()) 
+    exit(main())
