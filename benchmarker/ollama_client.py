@@ -1,36 +1,35 @@
 """
-Ollama client for interacting with LLMs through the Ollama API.
+Ollama client wrapper using the official ollama Python library.
 """
 
-import requests
-import json
-from typing import Optional, Dict, Any
+import ollama
+from typing import Optional, List, Dict, Any
 import time
 
 
 class OllamaClient:
-    """Client for communicating with Ollama API."""
+    """Client wrapper for the official ollama Python library."""
 
     def __init__(self, base_url: str = "http://localhost:11434"):
         self.base_url = base_url.rstrip("/")
-        self.session = requests.Session()
+        # Initialize the official ollama client
+        self.client = ollama.Client(host=base_url)
 
     def is_available(self) -> bool:
         """Check if Ollama is available and responding."""
         try:
-            response = self.session.get(f"{self.base_url}/api/tags", timeout=5)
-            return response.status_code == 200
-        except requests.RequestException:
+            # Try to list models to check if service is available
+            self.client.list()
+            return True
+        except Exception:
             return False
 
-    def list_models(self) -> list:
+    def list_models(self) -> List[str]:
         """List available models."""
         try:
-            response = self.session.get(f"{self.base_url}/api/tags")
-            response.raise_for_status()
-            data = response.json()
-            return [model["name"] for model in data.get("models", [])]
-        except requests.RequestException as e:
+            response = self.client.list()
+            return [model["name"] for model in response.get("models", [])]
+        except Exception as e:
             raise Exception(f"Failed to list models: {e}")
 
     def generate(
@@ -42,7 +41,7 @@ class OllamaClient:
         timeout: int = 120,
     ) -> str:
         """
-        Generate a response from the model.
+        Generate a response from the model (legacy method for backward compatibility).
 
         Args:
             model: Name of the model to use
@@ -54,44 +53,40 @@ class OllamaClient:
         Returns:
             The generated response text
         """
-        data = {
-            "model": model,
-            "prompt": prompt,
-            "stream": False,
-            "options": {
-                "temperature": temperature,
-                "num_predict": 4096,  # Max tokens to generate
-                "seed": 42,
-            },
-        }
-
-        if system:
-            data["system"] = system
-
         try:
             start_time = time.time()
-            response = self.session.post(
-                f"{self.base_url}/api/generate", json=data, timeout=timeout
-            )
-            response.raise_for_status()
 
-            result = response.json()
+            # Prepare the request options
+            options = {
+                "temperature": temperature,
+                "num_predict": 4096,  # Max tokens to generate
+            }
+
+            # Use the official client's generate method
+            response = self.client.generate(
+                model=model, prompt=prompt, system=system, options=options, stream=False
+            )
+
             generation_time = time.time() - start_time
 
-            if "response" not in result:
+            if "response" not in response:
                 raise Exception("No response received from model")
 
-            return result["response"].strip()
+            return response["response"].strip()
 
-        except requests.Timeout:
-            raise Exception(f"Request timed out after {timeout} seconds")
-        except requests.RequestException as e:
+        except ollama.RequestError as e:
             raise Exception(f"Request failed: {e}")
-        except json.JSONDecodeError:
-            raise Exception("Invalid JSON response from Ollama")
+        except ollama.ResponseError as e:
+            raise Exception(f"Response error: {e}")
+        except Exception as e:
+            raise Exception(f"Generation failed: {e}")
 
     def chat(
-        self, model: str, messages: list, temperature: float = 0.1, timeout: int = 120
+        self,
+        model: str,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.1,
+        timeout: int = 120,
     ) -> str:
         """
         Chat with the model using conversation format.
@@ -105,38 +100,31 @@ class OllamaClient:
         Returns:
             The generated response text
         """
-        data = {
-            "model": model,
-            "messages": messages,
-            "stream": False,
-            "options": {
-                "temperature": temperature,
-                "num_predict": 4096,
-                "seed": 42,
-            },
-        }
-
         try:
             start_time = time.time()
-            response = self.session.post(
-                f"{self.base_url}/api/chat", json=data, timeout=timeout
-            )
-            response.raise_for_status()
 
-            result = response.json()
+            options = {
+                "temperature": temperature,
+                "num_predict": 4096,
+            }
+
+            response = self.client.chat(
+                model=model, messages=messages, options=options, stream=False
+            )
+
             generation_time = time.time() - start_time
 
-            if "message" not in result or "content" not in result["message"]:
+            if "message" not in response or "content" not in response["message"]:
                 raise Exception("No response received from model")
 
-            return result["message"]["content"].strip()
+            return response["message"]["content"].strip()
 
-        except requests.Timeout:
-            raise Exception(f"Request timed out after {timeout} seconds")
-        except requests.RequestException as e:
+        except ollama.RequestError as e:
             raise Exception(f"Request failed: {e}")
-        except json.JSONDecodeError:
-            raise Exception("Invalid JSON response from Ollama")
+        except ollama.ResponseError as e:
+            raise Exception(f"Response error: {e}")
+        except Exception as e:
+            raise Exception(f"Chat failed: {e}")
 
     def pull_model(self, model: str) -> bool:
         """
@@ -154,15 +142,10 @@ class OllamaClient:
             if model in available_models:
                 return True
 
-            # Pull the model
-            data = {"name": model}
-            response = self.session.post(
-                f"{self.base_url}/api/pull",
-                json=data,
-                timeout=300,  # 5 minutes for model pulling
-            )
-            response.raise_for_status()
+            # Pull the model using the official client
+            self.client.pull(model)
             return True
 
-        except requests.RequestException:
+        except Exception as e:
+            print(f"Failed to pull model {model}: {e}")
             return False

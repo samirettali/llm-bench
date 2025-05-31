@@ -48,25 +48,43 @@ class Exercise:
         self.difficulty = difficulty
         self.attempts = 0
         self.results: List[ExerciseResult] = []
+        self.chat_history: List[Dict[str, str]] = []
 
-    def get_prompt(self) -> str:
-        """Generate the prompt for this exercise."""
-        prompt = f"""Solve this coding problem. Output ONLY the executable Python code, no markdown formatting, no explanations, no comments outside the code.
+    def get_initial_messages(self) -> List[Dict[str, str]]:
+        """Generate the initial chat messages for this exercise."""
+        system_message = {
+            "role": "system",
+            "content": """You are an expert Python programmer. Your task is to solve coding problems by writing clean, working Python code.
 
-Problem: {self.description}
-
-Requirements:
-- Write clean, working Python code
-- Do not include any markdown formatting (no ```python or ```)
-- Do not include explanations or comments outside the code
+IMPORTANT RULES:
+- Output ONLY the executable Python code, no markdown formatting
+- Do not include explanations, comments, or descriptions outside the code
+- Do not use ```python or ``` code blocks
 - The code should be ready to execute immediately
 - Focus on correctness and simplicity
+- If you make an error, learn from the feedback and fix it in the next attempt sending back the entire code.
+- Only the code in the last message you send will be executed.""",
+        }
 
-Code:"""
-        return prompt
+        user_message = {
+            "role": "user",
+            "content": f"""Solve this coding problem:
 
-    def get_retry_prompt(self, previous_result: ExerciseResult) -> str:
-        """Generate a retry prompt when the previous attempt failed."""
+{self.description}
+
+Provide only the Python code that solves this problem.""",
+        }
+
+        return [system_message, user_message]
+
+    def get_retry_messages(
+        self, previous_result: ExerciseResult
+    ) -> List[Dict[str, str]]:
+        """Generate retry messages based on the previous result."""
+        # Start with existing chat history
+        messages = self.chat_history.copy()
+
+        # Add feedback about the previous attempt
         error_info = ""
         if previous_result.error_message:
             error_info = f"Error: {previous_result.error_message}"
@@ -76,15 +94,16 @@ Code:"""
         ):
             error_info = f"Expected: {previous_result.expected_output}, but got: {previous_result.actual_output}"
 
-        prompt = f"""Your previous solution failed. Here's what went wrong:
+        feedback_message = {
+            "role": "user",
+            "content": f"""Your previous solution failed. Here's what went wrong:
 {error_info}
 
-Problem: {self.description}
+Please analyze the error and provide a corrected version. Remember to output only the Python code without any formatting or explanations.""",
+        }
 
-Please fix the issue and provide ONLY the corrected executable Python code, no markdown formatting, no explanations.
-
-Code:"""
-        return prompt
+        messages.append(feedback_message)
+        return messages
 
     def execute(self, code: str) -> ExerciseResult:
         """Execute the provided code and return the result."""
@@ -92,7 +111,25 @@ Code:"""
         result = self.test_function(code)
         result.code_generated = code
         self.results.append(result)
+
+        # Add the assistant's response to chat history
+        if self.attempts == 1:
+            # First attempt - initialize with initial messages
+            self.chat_history = self.get_initial_messages()
+
+        # Add the model's response to chat history
+        self.chat_history.append({"role": "assistant", "content": code})
+
         return result
+
+    def get_current_messages(self) -> List[Dict[str, str]]:
+        """Get the current chat messages for the next attempt."""
+        if self.attempts == 0:
+            return self.get_initial_messages()
+        else:
+            # Get retry messages based on the last result
+            last_result = self.results[-1]
+            return self.get_retry_messages(last_result)
 
     def is_completed(self) -> bool:
         """Check if this exercise has been completed successfully."""
@@ -101,6 +138,12 @@ Code:"""
     def can_retry(self) -> bool:
         """Check if this exercise can be retried."""
         return self.attempts < self.max_attempts and not self.is_completed()
+
+    def reset(self):
+        """Reset the exercise to initial state."""
+        self.attempts = 0
+        self.results = []
+        self.chat_history = []
 
 
 def create_code_execution_test(

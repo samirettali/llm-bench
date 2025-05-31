@@ -88,25 +88,6 @@ def main():
         print("Make sure Ollama is running and accessible.")
         sys.exit(1)
 
-    # Check if model is available
-    try:
-        available_models = client.list_models()
-        if args.model not in available_models:
-            print(f"Model '{args.model}' not found in available models.")
-            print(f"Available models: {', '.join(available_models)}")
-            print(f"Attempting to pull model '{args.model}'...")
-
-            if not client.pull_model(args.model):
-                print(
-                    f"Failed to pull model '{args.model}'. Please check the model name."
-                )
-                sys.exit(1)
-            print(f"Successfully pulled model '{args.model}'")
-
-    except Exception as e:
-        print(f"Error checking available models: {e}")
-        sys.exit(1)
-
     # Load exercises
     exercises = load_exercises(args.difficulty, args.max_attempts)
 

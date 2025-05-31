@@ -394,6 +394,73 @@ def generate_html_report(data: Dict[str, Any], output_file: str = None) -> str:
         .badge-danger {{ background: #dc3545; color: white; }}
         .badge-warning {{ background: #ffc107; color: #212529; }}
         
+        /* Chat History Styling */
+        .chat-history-section {{
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+        }}
+        
+        .chat-history-title {{
+            margin: 0 0 15px 0;
+            color: #495057;
+            font-size: 1.1em;
+        }}
+        
+        .chat-history {{
+            max-height: 400px;
+            overflow-y: auto;
+        }}
+        
+        .chat-message {{
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid;
+        }}
+        
+        .message-system {{
+            background: #e9ecef;
+            border-left-color: #6c757d;
+        }}
+        
+        .message-user {{
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }}
+        
+        .message-assistant {{
+            background: #f3e5f5;
+            border-left-color: #9c27b0;
+        }}
+        
+        .message-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }}
+        
+        .message-role {{
+            color: #495057;
+        }}
+        
+        .message-index {{
+            color: #6c757d;
+            font-size: 0.8em;
+        }}
+        
+        .message-content {{
+            font-size: 0.9em;
+            line-height: 1.4;
+            color: #495057;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }}
+        
         @media (max-width: 768px) {{
             .container {{ padding: 10px; }}
             .report-header {{ padding: 20px; }}
@@ -536,6 +603,45 @@ def generate_html_report(data: Dict[str, Any], output_file: str = None) -> str:
 """
 
             html_content += "                    </div>\n"
+
+        # Add chat history section if available
+        if exercise.get("chat_history"):
+            html_content += """
+                    <div class="chat-history-section">
+                        <h4 class="chat-history-title">💬 Conversation History</h4>
+                        <div class="chat-history">
+"""
+            for msg_idx, message in enumerate(exercise["chat_history"]):
+                role = message.get("role", "unknown")
+                content = message.get("content", "")
+                role_icon = {"system": "⚙️", "user": "👤", "assistant": "🤖"}.get(
+                    role, "❓"
+                )
+                role_class = f"message-{role}"
+
+                # Truncate long content for display
+                display_content = (
+                    content[:200] + "..." if len(content) > 200 else content
+                )
+                formatted_content = (
+                    format_code(display_content)
+                    if role == "assistant"
+                    else display_content
+                )
+
+                html_content += f"""
+                            <div class="chat-message {role_class}">
+                                <div class="message-header">
+                                    <span class="message-role">{role_icon} {role.title()}</span>
+                                    <span class="message-index">#{msg_idx + 1}</span>
+                                </div>
+                                <div class="message-content">{formatted_content}</div>
+                            </div>
+"""
+            html_content += """
+                        </div>
+                    </div>
+"""
 
         html_content += """
                 </div>
