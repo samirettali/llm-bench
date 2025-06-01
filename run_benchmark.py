@@ -40,6 +40,9 @@ def parse_arguments():
     parser.add_argument(
         "--no-save", action="store_true", help="Don't save results to file"
     )
+    parser.add_argument(
+        "--temperature", type=float, default=0.0, help="Temperature for the model"
+    )
 
     return parser.parse_args()
 
@@ -97,7 +100,10 @@ def main():
 
     # Create benchmark runner
     runner = BenchmarkRunner(
-        ollama_client=client, verbose=not args.quiet, save_results=not args.no_save
+        ollama_client=client,
+        verbose=not args.quiet,
+        save_results=not args.no_save,
+        temperature=args.temperature,
     )
 
     # Add exercises to runner

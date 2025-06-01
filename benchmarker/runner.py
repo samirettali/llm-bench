@@ -50,10 +50,12 @@ class BenchmarkRunner:
         ollama_client: Optional[OllamaClient] = None,
         verbose: bool = True,
         save_results: bool = True,
+        temperature: float = 0.0,
     ):
         self.client = ollama_client or OllamaClient()
         self.verbose = verbose
         self.save_results = save_results
+        self.temperature = temperature
         self.exercises: List[Exercise] = []
         self.current_stats: Optional[BenchmarkStats] = None
 
@@ -169,7 +171,7 @@ class BenchmarkRunner:
 
                 # Get response from model using chat interface
                 start_time = time.time()
-                response = self.client.chat(model, messages, temperature=0.1)
+                response = self.client.chat(model, messages, temperature=self.temperature)
                 generation_time = time.time() - start_time
 
                 # Clean the response to extract only code
@@ -296,6 +298,7 @@ class BenchmarkRunner:
         print(f"{Fore.MAGENTA}BENCHMARK SUMMARY")
         print(f"{Fore.MAGENTA}{'=' * 70}")
         print(f"{Fore.WHITE}Model: {stats.model_name}")
+        print(f"{Fore.WHITE}Temperature: {self.temperature}")
         print(f"{Fore.WHITE}Total Exercises: {stats.total_exercises}")
         print(f"{Fore.GREEN}Passed: {stats.passed_exercises}")
         print(f"{Fore.RED}Failed: {stats.failed_exercises}")

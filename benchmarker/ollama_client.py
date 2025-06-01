@@ -37,7 +37,7 @@ class OllamaClient:
         model: str,
         prompt: str,
         system: Optional[str] = None,
-        temperature: float = 0.1,
+        temperature: float = 0.0,
         timeout: int = 120,
     ) -> str:
         """
@@ -85,7 +85,7 @@ class OllamaClient:
         self,
         model: str,
         messages: List[Dict[str, str]],
-        temperature: float = 0.1,
+        temperature: float = 0.0,
         timeout: int = 120,
     ) -> str:
         """
