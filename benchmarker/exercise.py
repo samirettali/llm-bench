@@ -58,13 +58,14 @@ class Exercise:
 
 IMPORTANT RULES:
 - ALWAYS implement a function named 'solve' that solves the given problem
+- Use helper functions or classes if needed
 - Output ONLY the executable Python code, no markdown formatting
 - Do not include explanations, comments, or descriptions outside the code
 - Do not use ```python or ``` code blocks
 - The code should be ready to execute immediately
 - Focus on correctness and simplicity
-- If you make an error, learn from the feedback and fix it in the next attempt sending back the entire code.
-- Only the code in the last message you send will be executed.""",
+- If you make an error, learn from the feedback and fix it in the next attempt sending back the entire code
+- Only the code in the last message you send will be executed""",
         }
 
         user_message = {
