@@ -5,10 +5,8 @@ Exercise definition and result handling for the LLM benchmarking framework.
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Dict, List
 from enum import Enum
-import traceback
 import sys
 import io
-import contextlib
 
 
 class ExerciseStatus(Enum):
@@ -49,6 +47,9 @@ class Exercise:
         self.attempts = 0
         self.results: List[ExerciseResult] = []
         self.chat_history: List[Dict[str, str]] = []
+        self._feedback_added_for_attempts: set = (
+            set()
+        )  # Track which attempts have had feedback added
 
     def get_initial_messages(self) -> List[Dict[str, str]]:
         """Generate the initial chat messages for this exercise."""
@@ -58,13 +59,15 @@ class Exercise:
 
 IMPORTANT RULES:
 - ALWAYS implement a function named 'solve' that solves the given problem
+- Do not read from stdin, the `solve` function will be called with the input parameters describe in the problem statement
+- Do not print to stdout, the `solve` function will return the result
 - Use helper functions or classes if needed
 - Output ONLY the executable Python code, no markdown formatting
 - Do not include explanations, comments, or descriptions outside the code
 - Do not use ```python or ``` code blocks
 - The code should be ready to execute immediately
 - Focus on correctness and simplicity
-- If you make an error, learn from the feedback and fix it in the next attempt sending back the entire code
+- If you make an error, the error message or the wrong result will be provided to you in the next attempt, learn from the feedback and fix it in the next attempt sending back the entire code
 - Only the code in the last message you send will be executed""",
         }
 
@@ -83,29 +86,38 @@ Provide only the Python code that implements the 'solve' function.""",
         self, previous_result: ExerciseResult
     ) -> List[Dict[str, str]]:
         """Generate retry messages based on the previous result."""
-        # Start with existing chat history
-        messages = self.chat_history.copy()
+        # Determine which attempt this feedback is for
+        attempt_number = len(self.results)  # This is the attempt that just completed
 
-        # Add feedback about the previous attempt
-        error_info = ""
-        if previous_result.error_message:
-            error_info = f"Error: {previous_result.error_message}"
-        elif (
-            previous_result.actual_output is not None
-            and previous_result.expected_output is not None
-        ):
-            error_info = f"Expected: {previous_result.expected_output}, but got: {previous_result.actual_output}"
+        # Only add feedback if we haven't already added it for this attempt
+        # TODO: can this be removed?
+        if attempt_number not in self._feedback_added_for_attempts:
+            # Add feedback about the previous attempt to the persistent chat history
+            error_info = ""
+            if previous_result.error_message:
+                error_info = f"Error: {previous_result.error_message}"
+            elif (
+                previous_result.actual_output is not None
+                and previous_result.expected_output is not None
+            ):
+                error_info = f"Expected: {previous_result.expected_output}, but got: {previous_result.actual_output}"
 
-        feedback_message = {
-            "role": "user",
-            "content": f"""Your previous solution failed. Here's what went wrong:
+            feedback_message = {
+                "role": "user",
+                "content": f"""Your previous solution failed. Here's what went wrong:
 {error_info}
 
 Please analyze the error and provide a corrected version. Remember to output only the Python code without any formatting or explanations.""",
-        }
+            }
 
-        messages.append(feedback_message)
-        return messages
+            # Add the feedback message to the persistent chat history
+            self.chat_history.append(feedback_message)
+
+            # Mark that we've added feedback for this attempt
+            self._feedback_added_for_attempts.add(attempt_number)
+
+        # Return the complete updated chat history
+        return self.chat_history.copy()
 
     def execute(self, code: str) -> ExerciseResult:
         """Execute the provided code and return the result."""
@@ -114,7 +126,7 @@ Please analyze the error and provide a corrected version. Remember to output onl
         result.code_generated = code
         self.results.append(result)
 
-        # Add the assistant's response to chat history
+        # Manage chat history
         if self.attempts == 1:
             # First attempt - initialize with initial messages
             self.chat_history = self.get_initial_messages()
@@ -146,6 +158,7 @@ Please analyze the error and provide a corrected version. Remember to output onl
         self.attempts = 0
         self.results = []
         self.chat_history = []
+        self._feedback_added_for_attempts = set()
 
 
 def create_code_execution_test(

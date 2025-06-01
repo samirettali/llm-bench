@@ -8,9 +8,9 @@ import json
 from typing import List, Optional
 from dataclasses import dataclass, asdict
 from colorama import Fore, init
+from openai import OpenAI
 
 from .exercise import Exercise, ExerciseResult, ExerciseStatus
-from .ollama_client import OllamaClient
 
 # Initialize colorama for cross-platform colored output
 init(autoreset=True)
@@ -56,14 +56,32 @@ class BenchmarkRunner:
 
     def __init__(
         self,
-        ollama_client: Optional[OllamaClient] = None,
+        openai_client: Optional[OpenAI] = None,
         verbose: bool = True,
         save_results: bool = True,
         generate_html: bool = True,
         temperature: float = 0.0,
         output_folder: Optional[str] = None,
+        api_key: Optional[str] = None,
+        base_url: str = "https://openrouter.ai/api/v1",
     ):
-        self.client = ollama_client or OllamaClient()
+        # Use provided client or create new one with OpenRouter configuration
+        if openai_client:
+            self.client = openai_client
+        else:
+            # Get API key from parameter or environment variable
+            if not api_key:
+                api_key = os.getenv("OPENROUTER_API_KEY")
+                if not api_key:
+                    raise ValueError(
+                        "OpenRouter API key is required. Set OPENROUTER_API_KEY environment variable or pass api_key parameter."
+                    )
+
+            self.client = OpenAI(
+                api_key=api_key,
+                base_url=base_url,
+            )
+
         self.verbose = verbose
         self.save_results = save_results
         self.generate_html = generate_html
@@ -71,6 +89,44 @@ class BenchmarkRunner:
         self.exercises: List[Exercise] = []
         self.current_stats: Optional[BenchmarkStats] = None
         self.output_folder = output_folder
+
+    def _is_openrouter_available(self) -> bool:
+        """Check if OpenRouter is available and responding."""
+        try:
+            # Try to list models to check if service is available
+            self.client.models.list()
+            return True
+        except Exception:
+            return False
+
+    def _list_models(self) -> List[str]:
+        """List available models from OpenRouter."""
+        try:
+            response = self.client.models.list()
+            return [model.id for model in response.data]
+        except Exception as e:
+            raise Exception(f"Failed to list models: {e}")
+
+    def _validate_model(self, model: str) -> bool:
+        """Validate that a model exists and is available."""
+        try:
+            available_models = self._list_models()
+            if model in available_models:
+                return True
+
+            if self.verbose:
+                print(f"{Fore.YELLOW}Model {model} not found in available models.")
+                print(
+                    f"{Fore.YELLOW}Available models: {available_models[:5]}..."
+                    if len(available_models) > 5
+                    else f"{Fore.YELLOW}Available models: {available_models}"
+                )
+            return False
+
+        except Exception as e:
+            if self.verbose:
+                print(f"{Fore.RED}Failed to validate model {model}: {e}")
+            return False
 
     def add_exercise(self, exercise: Exercise):
         """Add an exercise to the benchmark suite."""
@@ -189,13 +245,32 @@ class BenchmarkRunner:
 
                 # Get response from model using chat interface
                 start_time = time.time()
-                response = self.client.chat(
-                    model, messages, temperature=self.temperature
+
+                # Validate model is available
+                if not self._validate_model(model):
+                    if self.verbose:
+                        print(
+                            f"{Fore.YELLOW}Note: Model {model} may not be available, but proceeding with request..."
+                        )
+
+                # Use OpenAI-compatible API for OpenRouter
+                response = self.client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=self.temperature,
+                    stream=False,
                 )
+
                 generation_time = time.time() - start_time
 
+                # Extract response content from OpenAI API format
+                if not response.choices or not response.choices[0].message:
+                    raise Exception("No response received from model")
+
+                response_text = response.choices[0].message.content.strip()
+
                 # Clean the response to extract only code
-                code = self.clean_code_response(response)
+                code = self.clean_code_response(response_text)
 
                 if self.verbose:
                     print(f"{Fore.BLUE}Generated code:")
@@ -250,9 +325,9 @@ class BenchmarkRunner:
         Returns:
             BenchmarkStats object with results
         """
-        if not self.client.is_available():
+        if not self._is_openrouter_available():
             raise Exception(
-                "Ollama is not available. Make sure it's running on the expected port."
+                "OpenRouter API is not available. Check your API key and internet connection."
             )
 
         if self.verbose:
@@ -331,7 +406,9 @@ class BenchmarkRunner:
     def _save_results(self, stats: BenchmarkStats):
         """Save detailed results to a JSON file and generate HTML report."""
         timestamp = time.strftime("%Y%m%d_%H%M%S")
-        json_filename = f"benchmark_results_{stats.model_name}_{timestamp}.json"
+        # Replace slashes in model name to create valid filename
+        safe_model_name = stats.model_name.replace("/", "_")
+        json_filename = f"benchmark_results_{safe_model_name}_{timestamp}.json"
 
         if self.output_folder:
             json_filename = os.path.join(self.output_folder, json_filename)

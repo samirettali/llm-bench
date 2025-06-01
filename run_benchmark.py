@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Main script to run LLM benchmarking using Ollama.
+Main script to run LLM benchmarking using OpenRouter.
 """
 
 import argparse
@@ -8,7 +8,7 @@ import os
 import sys
 from typing import List
 
-from benchmarker import BenchmarkRunner, OllamaClient
+from benchmarker import BenchmarkRunner
 from exercises import (
     get_basic_exercises,
     get_intermediate_exercises,
@@ -20,9 +20,12 @@ from exercises import (
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="LLM Benchmarking Framework using Ollama"
+        description="LLM Benchmarking Framework using OpenRouter"
     )
-    parser.add_argument("model", help="Name of the Ollama model to benchmark")
+    parser.add_argument(
+        "model",
+        help="Name of the model to benchmark (e.g., 'openai/gpt-4', 'anthropic/claude-3-sonnet')",
+    )
     parser.add_argument(
         "--difficulty",
         choices=["basic", "intermediate", "advanced", "super_hard", "all"],
@@ -33,7 +36,13 @@ def parse_arguments():
         "--max-attempts", type=int, default=3, help="Maximum attempts per exercise"
     )
     parser.add_argument(
-        "--ollama-url", default="http://localhost:11434", help="Ollama API URL"
+        "--api-key",
+        help="OpenRouter API key (or set OPENROUTER_API_KEY environment variable)",
+    )
+    parser.add_argument(
+        "--base-url",
+        default="https://openrouter.ai/api/v1",
+        help="OpenRouter API base URL",
     )
     parser.add_argument(
         "--quiet", action="store_true", help="Run in quiet mode (less verbose output)"
@@ -52,7 +61,10 @@ def parse_arguments():
     parser.add_argument(
         "--output-folder",
         default="reports",
-        help="Output folder for saving results (default: current directory)",
+        help="Output folder for saving results (default: reports)",
+    )
+    parser.add_argument(
+        "--list-models", action="store_true", help="List available models and exit"
     )
 
     return parser.parse_args()
@@ -93,13 +105,12 @@ def main():
     """Main function to run the benchmark."""
     args = parse_arguments()
 
-    # Create Ollama client
-    client = OllamaClient(base_url=args.ollama_url)
-
-    # Check if Ollama is available
-    if not client.is_available():
-        print(f"Error: Cannot connect to Ollama at {args.ollama_url}")
-        print("Make sure Ollama is running and accessible.")
+    # Check for API key
+    api_key = args.api_key or os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        print("Error: OpenRouter API key is required.")
+        print("Set OPENROUTER_API_KEY environment variable or use --api-key argument.")
+        print("Get your API key from: https://openrouter.ai/keys")
         sys.exit(1)
 
     # Load exercises
@@ -113,13 +124,19 @@ def main():
         os.makedirs(args.output_folder)
 
     # Create benchmark runner
-    runner = BenchmarkRunner(
-        ollama_client=client,
-        verbose=not args.quiet,
-        save_results=not args.no_save,
-        generate_html=not args.json_only,
-        output_folder=args.output_folder,
-    )
+    try:
+        runner = BenchmarkRunner(
+            verbose=not args.quiet,
+            save_results=not args.no_save,
+            generate_html=not args.json_only,
+            output_folder=args.output_folder,
+            api_key=api_key,
+            base_url=args.base_url,
+            temperature=args.temperature,
+        )
+    except Exception as e:
+        print(f"Error creating benchmark runner: {e}")
+        sys.exit(1)
 
     # Add exercises to runner
     runner.add_exercises(exercises)
@@ -129,6 +146,7 @@ def main():
         print(
             f"Starting benchmark for model '{args.model}' with {len(exercises)} exercises..."
         )
+        print(f"Using OpenRouter API at {args.base_url}")
 
         if not args.no_save:
             if args.json_only:
@@ -140,10 +158,10 @@ def main():
 
         # Generate additional HTML report if requested manually
         if args.json_only and not args.no_save:
-            if args.quiet:
+            if not args.quiet:
                 print("\n💡 Tip: Generate HTML report with:")
                 print(
-                    f"python generate_html_report.py benchmark_results_{args.model}_*.json"
+                    f"python generate_html_report.py benchmark_results_{args.model.replace('/', '_')}_*.json"
                 )
 
         # Display final summary
