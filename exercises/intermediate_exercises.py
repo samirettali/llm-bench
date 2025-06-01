@@ -1,187 +1,151 @@
 """
 Intermediate programming exercises for LLM benchmarking.
+These test more complex algorithms and data structure manipulation.
 """
 
 from typing import List
-from benchmarker.exercise import (
-    Exercise,
-    create_function_test,
-    create_code_execution_test,
-)
+from benchmarker.exercise import Exercise, create_solve_test
 
 
 def get_intermediate_exercises() -> List[Exercise]:
     """Get a list of intermediate programming exercises."""
     exercises = []
 
-    # Exercise 1: Factorial
-    exercises.append(
-        Exercise(
-            name="Factorial Function",
-            description="Write a function called 'factorial' that calculates the factorial of a number (n!).",
-            test_function=create_function_test(
-                "factorial",
-                [
-                    {"input": 0, "output": 1},
-                    {"input": 1, "output": 1},
-                    {"input": 5, "output": 120},
-                    {"input": 4, "output": 24},
-                    {"input": 3, "output": 6},
-                ],
-            ),
-            difficulty="medium",
-        )
-    )
-
-    # Exercise 2: Fibonacci
+    # Exercise 1: Fibonacci
     exercises.append(
         Exercise(
             name="Fibonacci Sequence",
-            description="Write a function called 'fibonacci' that returns the nth number in the Fibonacci sequence (starting with 0, 1).",
-            test_function=create_function_test(
-                "fibonacci",
+            description="Implement a function that takes an integer n and returns the nth Fibonacci number (0-indexed).",
+            test_function=create_solve_test(
                 [
                     {"input": 0, "output": 0},
                     {"input": 1, "output": 1},
-                    {"input": 2, "output": 1},
-                    {"input": 3, "output": 2},
-                    {"input": 4, "output": 3},
                     {"input": 5, "output": 5},
-                    {"input": 6, "output": 8},
-                ],
+                    {"input": 10, "output": 55},
+                ]
             ),
-            difficulty="medium",
+            difficulty="intermediate",
         )
     )
 
-    # Exercise 3: Prime numbers
+    # Exercise 2: Prime Numbers
     exercises.append(
         Exercise(
-            name="Prime Number Check",
-            description="Write a function called 'is_prime' that checks if a given number is prime.",
-            test_function=create_function_test(
-                "is_prime",
+            name="Prime Check",
+            description="Implement a function that takes an integer and returns True if it's a prime number, False otherwise.",
+            test_function=create_solve_test(
                 [
                     {"input": 2, "output": True},
                     {"input": 3, "output": True},
                     {"input": 4, "output": False},
                     {"input": 17, "output": True},
                     {"input": 1, "output": False},
-                    {"input": 0, "output": False},
-                    {"input": 25, "output": False},
-                    {"input": 29, "output": True},
-                ],
+                ]
             ),
-            difficulty="medium",
+            difficulty="intermediate",
         )
     )
 
-    # Exercise 4: String palindrome
-    exercises.append(
-        Exercise(
-            name="Palindrome Check",
-            description="Write a function called 'is_palindrome' that checks if a string reads the same forwards and backwards (ignore case and spaces).",
-            test_function=create_function_test(
-                "is_palindrome",
-                [
-                    {"input": "racecar", "output": True},
-                    {"input": "hello", "output": False},
-                    {"input": "A man a plan a canal Panama", "output": True},
-                    {"input": "race a car", "output": False},
-                    {"input": "", "output": True},
-                    {"input": "a", "output": True},
-                ],
-            ),
-            difficulty="medium",
-        )
-    )
-
-    # Exercise 5: List sorting
-    exercises.append(
-        Exercise(
-            name="Bubble Sort",
-            description="Write a function called 'bubble_sort' that sorts a list of numbers using the bubble sort algorithm.",
-            test_function=create_function_test(
-                "bubble_sort",
-                [
-                    {
-                        "input": [64, 34, 25, 12, 22, 11, 90],
-                        "output": [11, 12, 22, 25, 34, 64, 90],
-                    },
-                    {"input": [5, 1, 4, 2, 8], "output": [1, 2, 4, 5, 8]},
-                    {"input": [1], "output": [1]},
-                    {"input": [], "output": []},
-                ],
-            ),
-            difficulty="medium",
-        )
-    )
-
-    # Exercise 6: Dictionary operations
-    exercises.append(
-        Exercise(
-            name="Word Count",
-            description="Write a function called 'word_count' that takes a string and returns a dictionary with word counts.",
-            test_function=create_function_test(
-                "word_count",
-                [
-                    {"input": "hello world", "output": {"hello": 1, "world": 1}},
-                    {
-                        "input": "the quick brown fox jumps over the lazy dog",
-                        "output": {
-                            "the": 2,
-                            "quick": 1,
-                            "brown": 1,
-                            "fox": 1,
-                            "jumps": 1,
-                            "over": 1,
-                            "lazy": 1,
-                            "dog": 1,
-                        },
-                    },
-                    {"input": "", "output": {}},
-                    {"input": "hello hello hello", "output": {"hello": 3}},
-                ],
-            ),
-            difficulty="medium",
-        )
-    )
-
-    # Exercise 7: Binary search
+    # Exercise 3: Binary Search
     exercises.append(
         Exercise(
             name="Binary Search",
-            description="Write a function called 'binary_search' that finds the index of a target value in a sorted list using binary search. Return -1 if not found.",
-            test_function=create_function_test(
-                "binary_search",
+            description="Implement a function that takes a sorted list and a target value, returns the index of the target or -1 if not found.",
+            test_function=create_solve_test(
                 [
                     {"input": ([1, 2, 3, 4, 5], 3), "output": 2},
                     {"input": ([1, 2, 3, 4, 5], 6), "output": -1},
-                    {"input": ([1, 2, 3, 4, 5], 1), "output": 0},
-                    {"input": ([1, 2, 3, 4, 5], 5), "output": 4},
+                    {"input": ([1], 1), "output": 0},
                     {"input": ([], 1), "output": -1},
-                ],
+                ]
             ),
-            difficulty="medium",
+            difficulty="intermediate",
         )
     )
 
-    # Exercise 8: String anagram
+    # Exercise 4: Anagram Check
     exercises.append(
         Exercise(
             name="Anagram Check",
-            description="Write a function called 'are_anagrams' that checks if two strings are anagrams (ignore case and spaces).",
-            test_function=create_function_test(
-                "are_anagrams",
+            description="Implement a function that takes two strings and returns True if they are anagrams, False otherwise.",
+            test_function=create_solve_test(
                 [
                     {"input": ("listen", "silent"), "output": True},
                     {"input": ("hello", "world"), "output": False},
-                    {"input": ("The Eyes", "They See"), "output": True},
+                    {"input": ("a", "a"), "output": True},
                     {"input": ("", ""), "output": True},
-                    {"input": ("a", "b"), "output": False},
-                ],
+                ]
             ),
-            difficulty="medium",
+            difficulty="intermediate",
+        )
+    )
+
+    # Exercise 5: Two Sum
+    exercises.append(
+        Exercise(
+            name="Two Sum",
+            description="Implement a function that takes a list of integers and a target sum, returns indices of two numbers that add up to target, or [-1, -1] if none found.",
+            test_function=create_solve_test(
+                [
+                    {"input": ([2, 7, 11, 15], 9), "output": [0, 1]},
+                    {"input": ([3, 2, 4], 6), "output": [1, 2]},
+                    {"input": ([3, 3], 6), "output": [0, 1]},
+                    {"input": ([1, 2], 5), "output": [-1, -1]},
+                ]
+            ),
+            difficulty="intermediate",
+        )
+    )
+
+    # Exercise 6: Merge Sorted Lists
+    exercises.append(
+        Exercise(
+            name="Merge Sorted Lists",
+            description="Implement a function that takes two sorted lists and returns a single merged sorted list.",
+            test_function=create_solve_test(
+                [
+                    {"input": ([1, 3, 5], [2, 4, 6]), "output": [1, 2, 3, 4, 5, 6]},
+                    {"input": ([], [1, 2, 3]), "output": [1, 2, 3]},
+                    {"input": ([1, 2, 3], []), "output": [1, 2, 3]},
+                    {"input": ([1], [2]), "output": [1, 2]},
+                ]
+            ),
+            difficulty="intermediate",
+        )
+    )
+
+    # Exercise 7: Valid Parentheses
+    exercises.append(
+        Exercise(
+            name="Valid Parentheses",
+            description="Implement a function that takes a string containing parentheses and returns True if they are balanced, False otherwise.",
+            test_function=create_solve_test(
+                [
+                    {"input": "()", "output": True},
+                    {"input": "()[]{}", "output": True},
+                    {"input": "(]", "output": False},
+                    {"input": "([)]", "output": False},
+                    {"input": "{[]}", "output": True},
+                ]
+            ),
+            difficulty="intermediate",
+        )
+    )
+
+    # Exercise 8: Longest Common Subsequence Length
+    exercises.append(
+        Exercise(
+            name="Longest Common Subsequence",
+            description="Implement a function that takes two strings and returns the length of their longest common subsequence.",
+            test_function=create_solve_test(
+                [
+                    {"input": ("abcde", "ace"), "output": 3},
+                    {"input": ("abc", "abc"), "output": 3},
+                    {"input": ("abc", "def"), "output": 0},
+                    {"input": ("", "abc"), "output": 0},
+                ]
+            ),
+            difficulty="intermediate",
         )
     )
 

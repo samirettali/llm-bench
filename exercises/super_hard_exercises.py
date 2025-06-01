@@ -6,7 +6,7 @@ These exercises test the absolute limits of algorithmic reasoning and implementa
 from typing import List
 from benchmarker.exercise import (
     Exercise,
-    create_function_test,
+    create_solve_test,
     create_code_execution_test,
     ExerciseResult,
     ExerciseStatus,
@@ -14,7 +14,7 @@ from benchmarker.exercise import (
 
 
 def create_trie_test() -> callable:
-    """Create a custom test for the Trie data structure."""
+    """Create a custom test for the Trie data structure (special case that needs a class)."""
 
     def test_function(code: str) -> ExerciseResult:
         try:
@@ -106,9 +106,8 @@ def get_super_hard_exercises() -> List[Exercise]:
     exercises.append(
         Exercise(
             name="Kruskal's Minimum Spanning Tree",
-            description="Implement Kruskal's algorithm to find the minimum spanning tree. Input is a list of edges [(weight, node1, node2)]. Return total weight of MST.",
-            test_function=create_function_test(
-                "kruskal_mst",
+            description="Implement a function that takes a list of edges [(weight, node1, node2)] and returns the total weight of the minimum spanning tree using Kruskal's algorithm.",
+            test_function=create_solve_test(
                 [
                     {
                         "input": [
@@ -135,9 +134,8 @@ def get_super_hard_exercises() -> List[Exercise]:
     exercises.append(
         Exercise(
             name="Edit Distance with Custom Operations",
-            description="Calculate minimum edit distance between two strings with custom operation costs: insert=1, delete=1, substitute=2. Return the minimum cost.",
-            test_function=create_function_test(
-                "edit_distance_custom",
+            description="Implement a function that takes two strings and calculates minimum edit distance with custom operation costs: insert=1, delete=1, substitute=2.",
+            test_function=create_solve_test(
                 [
                     {"input": ("kitten", "sitting"), "output": 5},
                     {"input": ("sunday", "saturday"), "output": 4},
@@ -154,9 +152,8 @@ def get_super_hard_exercises() -> List[Exercise]:
     exercises.append(
         Exercise(
             name="Lowest Common Ancestor in Binary Tree",
-            description="Find the lowest common ancestor of two nodes in a binary tree. Tree format: [value, left, right] or [value] for leaves. Return the LCA value.",
-            test_function=create_function_test(
-                "find_lca",
+            description="Implement a function that takes a binary tree (format: [value, left, right] or [value] for leaves) and two node values, returns the LCA value.",
+            test_function=create_solve_test(
                 [
                     {
                         "input": ([3, [5, [6], [2, [7], [4]]], [1, [0], [8]]], 5, 1),
@@ -177,9 +174,8 @@ def get_super_hard_exercises() -> List[Exercise]:
     exercises.append(
         Exercise(
             name="Modular Exponentiation",
-            description="Compute (base^exp) % mod efficiently for large numbers using fast exponentiation. All inputs fit in 64-bit integers.",
-            test_function=create_function_test(
-                "mod_exp",
+            description="Implement a function that takes base, exponent, and modulus, and computes (base^exp) % mod efficiently using fast exponentiation.",
+            test_function=create_solve_test(
                 [
                     {"input": (2, 10, 1000), "output": 24},
                     {"input": (3, 4, 5), "output": 1},
@@ -196,9 +192,8 @@ def get_super_hard_exercises() -> List[Exercise]:
     exercises.append(
         Exercise(
             name="KMP Pattern Matching",
-            description="Implement the Knuth-Morris-Pratt algorithm to find all occurrences of a pattern in text. Return list of starting indices.",
-            test_function=create_function_test(
-                "kmp_search",
+            description="Implement a function that takes a text string and a pattern, and returns all starting indices where the pattern occurs using the Knuth-Morris-Pratt algorithm.",
+            test_function=create_solve_test(
                 [
                     {
                         "input": ("ABABDABACDABABCABCABCABCABC", "ABABCABCABCABC"),
@@ -218,9 +213,8 @@ def get_super_hard_exercises() -> List[Exercise]:
     exercises.append(
         Exercise(
             name="Topological Sort with Cycle Detection",
-            description="Perform topological sort on a directed graph. Return the sorted list if no cycle exists, or empty list if cycle detected. Graph: {node: [dependencies]}",
-            test_function=create_function_test(
-                "topological_sort",
+            description="Implement a function that takes a directed graph as adjacency list {node: [dependencies]} and returns topologically sorted list, or empty list if cycle detected.",
+            test_function=create_solve_test(
                 [
                     {
                         "input": {"A": ["B", "C"], "B": ["D"], "C": ["D"], "D": []},
@@ -237,7 +231,7 @@ def get_super_hard_exercises() -> List[Exercise]:
         )
     )
 
-    # Exercise 7: Advanced Data Structure - Trie with Prefix Operations
+    # Exercise 7: Advanced Data Structure - Trie with Prefix Operations (special case)
     exercises.append(
         Exercise(
             name="Trie with Prefix Count",
@@ -251,9 +245,8 @@ def get_super_hard_exercises() -> List[Exercise]:
     exercises.append(
         Exercise(
             name="Convex Hull using Graham Scan",
-            description="Find the convex hull of a set of 2D points using Graham scan algorithm. Return points in counter-clockwise order starting from bottom-most point.",
-            test_function=create_function_test(
-                "convex_hull",
+            description="Implement a function that takes a list of 2D points and returns the convex hull points in counter-clockwise order using Graham scan algorithm.",
+            test_function=create_solve_test(
                 [
                     {
                         "input": [(0, 0), (1, 1), (2, 0), (1, -1), (0.5, 0.5)],
@@ -277,9 +270,8 @@ def get_super_hard_exercises() -> List[Exercise]:
     exercises.append(
         Exercise(
             name="Matrix Chain Multiplication",
-            description="Find minimum scalar multiplications needed to multiply a chain of matrices. Input: list of dimensions [d0,d1,d2,...,dn] for matrices A1(d0×d1), A2(d1×d2), ..., An(dn-1×dn).",
-            test_function=create_function_test(
-                "matrix_chain_order",
+            description="Implement a function that takes a list of matrix dimensions [d0,d1,d2,...,dn] and finds minimum scalar multiplications for optimal parenthesization.",
+            test_function=create_solve_test(
                 [
                     {"input": [1, 2, 3, 4, 5], "output": 38},
                     {"input": [40, 20, 30, 10, 30], "output": 26000},
@@ -295,9 +287,8 @@ def get_super_hard_exercises() -> List[Exercise]:
     exercises.append(
         Exercise(
             name="Suffix Array Construction",
-            description="Build suffix array for a given string. Return list of starting indices of suffixes in lexicographically sorted order.",
-            test_function=create_function_test(
-                "build_suffix_array",
+            description="Implement a function that takes a string and builds its suffix array - list of starting indices of suffixes in lexicographically sorted order.",
+            test_function=create_solve_test(
                 [
                     {"input": "banana", "output": [5, 3, 1, 0, 4, 2]},
                     {"input": "abcab", "output": [2, 0, 3, 1, 4]},

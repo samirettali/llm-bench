@@ -1,154 +1,149 @@
 """
 Basic programming exercises for LLM benchmarking.
+These test fundamental programming concepts and simple problem-solving.
 """
 
 from typing import List
-from benchmarker.exercise import (
-    Exercise,
-    create_function_test,
-    create_code_execution_test,
-)
+from benchmarker.exercise import Exercise, create_solve_test
 
 
 def get_basic_exercises() -> List[Exercise]:
     """Get a list of basic programming exercises."""
     exercises = []
 
-    # Exercise 1: Simple arithmetic
+    # Exercise 1: Simple Addition
     exercises.append(
         Exercise(
             name="Simple Addition",
-            description="Write a function called 'add_numbers' that takes two numbers and returns their sum.",
-            test_function=create_function_test(
-                "add_numbers",
+            description="Implement a function that takes two numbers and returns their sum.",
+            test_function=create_solve_test(
                 [
                     {"input": (2, 3), "output": 5},
-                    {"input": (10, -5), "output": 5},
                     {"input": (0, 0), "output": 0},
-                    {"input": (-3, -7), "output": -10},
-                ],
+                    {"input": (-1, 1), "output": 0},
+                    {"input": (10, -5), "output": 5},
+                ]
             ),
-            difficulty="easy",
+            difficulty="basic",
         )
     )
 
-    # Exercise 2: String manipulation
+    # Exercise 2: String Length
     exercises.append(
         Exercise(
-            name="String Reversal",
-            description="Write a function called 'reverse_string' that takes a string and returns it reversed.",
-            test_function=create_function_test(
-                "reverse_string",
+            name="String Length",
+            description="Implement a function that takes a string and returns its length.",
+            test_function=create_solve_test(
                 [
-                    {"input": "hello", "output": "olleh"},
-                    {"input": "", "output": ""},
-                    {"input": "a", "output": "a"},
-                    {"input": "Python", "output": "nohtyP"},
-                ],
+                    {"input": "hello", "output": 5},
+                    {"input": "", "output": 0},
+                    {"input": "a", "output": 1},
+                    {"input": "hello world", "output": 11},
+                ]
             ),
-            difficulty="easy",
+            difficulty="basic",
         )
     )
 
-    # Exercise 3: List operations
+    # Exercise 3: List Sum
     exercises.append(
         Exercise(
-            name="List Maximum",
-            description="Write a function called 'find_max' that takes a list of numbers and returns the maximum value.",
-            test_function=create_function_test(
-                "find_max",
-                [
-                    {"input": [1, 2, 3, 4, 5], "output": 5},
-                    {"input": [-1, -2, -3], "output": -1},
-                    {"input": [42], "output": 42},
-                    {"input": [3, 1, 4, 1, 5, 9], "output": 9},
-                ],
-            ),
-            difficulty="easy",
-        )
-    )
-
-    # Exercise 4: Conditional logic
-    exercises.append(
-        Exercise(
-            name="Even or Odd",
-            description="Write a function called 'is_even' that takes a number and returns True if it's even, False if it's odd.",
-            test_function=create_function_test(
-                "is_even",
-                [
-                    {"input": 2, "output": True},
-                    {"input": 3, "output": False},
-                    {"input": 0, "output": True},
-                    {"input": -4, "output": True},
-                    {"input": -3, "output": False},
-                ],
-            ),
-            difficulty="easy",
-        )
-    )
-
-    # Exercise 5: Loop operations
-    exercises.append(
-        Exercise(
-            name="Sum of List",
-            description="Write a function called 'sum_list' that takes a list of numbers and returns their sum.",
-            test_function=create_function_test(
-                "sum_list",
+            name="List Sum",
+            description="Implement a function that takes a list of numbers and returns their sum.",
+            test_function=create_solve_test(
                 [
                     {"input": [1, 2, 3], "output": 6},
                     {"input": [], "output": 0},
-                    {"input": [-1, 1], "output": 0},
-                    {"input": [10, -5, 3], "output": 8},
-                ],
+                    {"input": [5], "output": 5},
+                    {"input": [-1, 1, 0], "output": 0},
+                ]
             ),
-            difficulty="easy",
+            difficulty="basic",
         )
     )
 
-    # Exercise 6: String processing
+    # Exercise 4: Maximum Number
     exercises.append(
         Exercise(
-            name="Count Vowels",
-            description="Write a function called 'count_vowels' that takes a string and returns the number of vowels (a, e, i, o, u) in it.",
-            test_function=create_function_test(
-                "count_vowels",
+            name="Find Maximum",
+            description="Implement a function that takes a list of numbers and returns the maximum value.",
+            test_function=create_solve_test(
                 [
-                    {"input": "hello", "output": 2},
-                    {"input": "aeiou", "output": 5},
-                    {"input": "bcdfg", "output": 0},
-                    {"input": "Hello World", "output": 3},
-                    {"input": "", "output": 0},
-                ],
+                    {"input": [1, 2, 3], "output": 3},
+                    {"input": [5], "output": 5},
+                    {"input": [-1, -2, -3], "output": -1},
+                    {"input": [0, 0, 0], "output": 0},
+                ]
             ),
-            difficulty="easy",
+            difficulty="basic",
         )
     )
 
-    # Exercise 7: Simple print output
+    # Exercise 5: Even Numbers
     exercises.append(
         Exercise(
-            name="Print Hello World",
-            description="Write code that prints exactly 'Hello, World!' to the console.",
-            test_function=create_code_execution_test("Hello, World!"),
-            difficulty="easy",
-        )
-    )
-
-    # Exercise 8: Basic math
-    exercises.append(
-        Exercise(
-            name="Calculate Average",
-            description="Write a function called 'calculate_average' that takes a list of numbers and returns their average.",
-            test_function=create_function_test(
-                "calculate_average",
+            name="Count Even Numbers",
+            description="Implement a function that takes a list of integers and returns the count of even numbers.",
+            test_function=create_solve_test(
                 [
-                    {"input": [1, 2, 3], "output": 2.0},
-                    {"input": [10, 20], "output": 15.0},
-                    {"input": [5], "output": 5.0},
-                    {"input": [2, 4, 6, 8], "output": 5.0},
-                ],
+                    {"input": [1, 2, 3, 4], "output": 2},
+                    {"input": [1, 3, 5], "output": 0},
+                    {"input": [2, 4, 6], "output": 3},
+                    {"input": [], "output": 0},
+                ]
             ),
-            difficulty="easy",
+            difficulty="basic",
+        )
+    )
+
+    # Exercise 6: String Reversal
+    exercises.append(
+        Exercise(
+            name="Reverse String",
+            description="Implement a function that takes a string and returns it reversed.",
+            test_function=create_solve_test(
+                [
+                    {"input": "hello", "output": "olleh"},
+                    {"input": "a", "output": "a"},
+                    {"input": "", "output": ""},
+                    {"input": "12345", "output": "54321"},
+                ]
+            ),
+            difficulty="basic",
+        )
+    )
+
+    # Exercise 7: Palindrome Check
+    exercises.append(
+        Exercise(
+            name="Palindrome Check",
+            description="Implement a function that takes a string and returns True if it's a palindrome, False otherwise.",
+            test_function=create_solve_test(
+                [
+                    {"input": "racecar", "output": True},
+                    {"input": "hello", "output": False},
+                    {"input": "a", "output": True},
+                    {"input": "", "output": True},
+                ]
+            ),
+            difficulty="basic",
+        )
+    )
+
+    # Exercise 8: Factorial
+    exercises.append(
+        Exercise(
+            name="Factorial",
+            description="Implement a function that takes a non-negative integer and returns its factorial.",
+            test_function=create_solve_test(
+                [
+                    {"input": 5, "output": 120},
+                    {"input": 0, "output": 1},
+                    {"input": 1, "output": 1},
+                    {"input": 3, "output": 6},
+                ]
+            ),
+            difficulty="basic",
         )
     )
 

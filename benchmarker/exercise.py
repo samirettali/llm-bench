@@ -54,9 +54,10 @@ class Exercise:
         """Generate the initial chat messages for this exercise."""
         system_message = {
             "role": "system",
-            "content": """You are an expert Python programmer. Your task is to solve coding problems by writing clean, working Python code.
+            "content": """You are an expert Python programmer. Your task is to solve coding problems by implementing a function called 'solve'.
 
 IMPORTANT RULES:
+- ALWAYS implement a function named 'solve' that solves the given problem
 - Output ONLY the executable Python code, no markdown formatting
 - Do not include explanations, comments, or descriptions outside the code
 - Do not use ```python or ``` code blocks
@@ -68,11 +69,11 @@ IMPORTANT RULES:
 
         user_message = {
             "role": "user",
-            "content": f"""Solve this coding problem:
+            "content": f"""Solve this coding problem by implementing a function called 'solve':
 
 {self.description}
 
-Provide only the Python code that solves this problem.""",
+Provide only the Python code that implements the 'solve' function.""",
         }
 
         return [system_message, user_message]
@@ -222,6 +223,24 @@ def create_code_execution_test(
             )
 
     return test_function
+
+
+def create_solve_test(test_cases: List[Dict[str, Any]]) -> Callable[[str], ExerciseResult]:
+    """
+    Create a test function that tests a 'solve' function with multiple test cases.
+    This is the simplified, standardized approach where all exercises use 'solve' as the function name.
+
+    Args:
+        test_cases: List of dictionaries with 'input' and 'output' keys
+                   where 'input' can be:
+                   - A single value (scalar, list, tuple, etc.) for single-argument functions
+                   - A tuple/list of multiple values to be unpacked as separate arguments
+                   and 'output' is the expected result
+
+    Returns:
+        A test function that can be used with Exercise
+    """
+    return create_function_test("solve", test_cases)
 
 
 def create_function_test(
