@@ -4,6 +4,7 @@ Main script to run LLM benchmarking using Ollama.
 """
 
 import argparse
+import os
 import sys
 from typing import List
 
@@ -47,6 +48,11 @@ def parse_arguments():
     )
     parser.add_argument(
         "--temperature", type=float, default=0.0, help="Temperature for the model"
+    )
+    parser.add_argument(
+        "--output-folder",
+        default="reports",
+        help="Output folder for saving results (default: current directory)",
     )
 
     return parser.parse_args()
@@ -103,12 +109,16 @@ def main():
         print("No exercises loaded. Check difficulty setting.")
         sys.exit(1)
 
+    if args.output_folder and not os.path.exists(args.output_folder):
+        os.makedirs(args.output_folder)
+
     # Create benchmark runner
     runner = BenchmarkRunner(
         ollama_client=client,
         verbose=not args.quiet,
         save_results=not args.no_save,
         generate_html=not args.json_only,
+        output_folder=args.output_folder,
     )
 
     # Add exercises to runner
@@ -131,14 +141,14 @@ def main():
         # Generate additional HTML report if requested manually
         if args.json_only and not args.no_save:
             if args.quiet:
-                print(f"\n💡 Tip: Generate HTML report with:")
+                print("\n💡 Tip: Generate HTML report with:")
                 print(
                     f"python generate_html_report.py benchmark_results_{args.model}_*.json"
                 )
 
         # Display final summary
         if args.quiet:
-            print(f"\nBenchmark completed!")
+            print("\nBenchmark completed!")
             print(
                 f"Success rate: {stats.success_rate:.1f}% ({stats.passed_exercises}/{stats.total_exercises})"
             )

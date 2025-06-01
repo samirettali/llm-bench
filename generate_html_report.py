@@ -7,7 +7,7 @@ Converts JSON benchmark results into a formatted HTML report.
 import json
 import argparse
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 
 def load_benchmark_results(json_file: str) -> Dict[str, Any]:
@@ -701,9 +701,7 @@ def generate_html_report_content(data: Dict[str, Any]) -> str:
     return html_content
 
 
-def generate_html_report_file(
-    data: Dict[str, Any], output_file: Optional[str] = None
-) -> str:
+def generate_html_report_file(data: Dict[str, Any], output_file: str) -> str:
     """
     Generate HTML report file from benchmark data.
 
@@ -728,12 +726,6 @@ def generate_html_report_file(
             if stats["total_exercises"] > 0
             else 0
         )
-
-    # Generate output filename if not provided
-    if not output_file:
-        model_name = stats["model_name"].replace(":", "_")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = f"benchmark_report_{model_name}_{timestamp}.html"
 
     # Generate HTML content
     html_content = generate_html_report_content(data)

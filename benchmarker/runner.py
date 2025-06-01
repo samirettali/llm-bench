@@ -2,6 +2,7 @@
 Main benchmark runner that coordinates exercises and model evaluation.
 """
 
+import os
 import time
 import json
 from typing import List, Optional
@@ -60,6 +61,7 @@ class BenchmarkRunner:
         save_results: bool = True,
         generate_html: bool = True,
         temperature: float = 0.0,
+        output_folder: Optional[str] = None,
     ):
         self.client = ollama_client or OllamaClient()
         self.verbose = verbose
@@ -68,6 +70,7 @@ class BenchmarkRunner:
         self.temperature = temperature
         self.exercises: List[Exercise] = []
         self.current_stats: Optional[BenchmarkStats] = None
+        self.output_folder = output_folder
 
     def add_exercise(self, exercise: Exercise):
         """Add an exercise to the benchmark suite."""
@@ -330,6 +333,9 @@ class BenchmarkRunner:
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         json_filename = f"benchmark_results_{stats.model_name}_{timestamp}.json"
 
+        if self.output_folder:
+            json_filename = os.path.join(self.output_folder, json_filename)
+
         # Prepare detailed results
         detailed_results = {"stats": asdict(stats), "exercises": []}
 
@@ -374,7 +380,9 @@ class BenchmarkRunner:
             # Generate HTML report if HTML generation is available and enabled
             if HTML_GENERATION_AVAILABLE and self.generate_html:
                 try:
-                    html_filename = generate_html_report_file(detailed_results)
+                    html_filename = json_filename.replace(".json", ".html")
+
+                    generate_html_report_file(detailed_results, html_filename)
                     if self.verbose:
                         print(f"{Fore.CYAN}📊 HTML report generated: {html_filename}")
                         print(
