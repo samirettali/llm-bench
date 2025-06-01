@@ -7,7 +7,7 @@ Converts JSON benchmark results into a formatted HTML report.
 import json
 import argparse
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 def load_benchmark_results(json_file: str) -> Dict[str, Any]:
@@ -39,17 +39,18 @@ def get_status_class(status: str) -> str:
     return f"status-{status}"
 
 
-def generate_html_report(data: Dict[str, Any], output_file: str = None) -> str:
-    """Generate HTML report from benchmark data."""
+def generate_html_report_content(data: Dict[str, Any]) -> str:
+    """
+    Generate HTML report content from benchmark data.
 
+    Args:
+        data: Benchmark results dictionary containing 'stats' and 'exercises'
+
+    Returns:
+        Complete HTML content as string
+    """
     stats = data["stats"]
     exercises = data["exercises"]
-
-    # Generate output filename if not provided
-    if not output_file:
-        model_name = stats["model_name"].replace(":", "_")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = f"benchmark_report_{model_name}_{timestamp}.html"
 
     # Calculate additional statistics
     total_time = stats["total_time"]
@@ -697,11 +698,55 @@ def generate_html_report(data: Dict[str, Any], output_file: str = None) -> str:
 </body>
 </html>"""
 
-    return html_content, output_file
+    return html_content
+
+
+def generate_html_report_file(
+    data: Dict[str, Any], output_file: Optional[str] = None
+) -> str:
+    """
+    Generate HTML report file from benchmark data.
+
+    Args:
+        data: Benchmark results dictionary
+        output_file: Optional output filename. If None, generates based on model name and timestamp.
+
+    Returns:
+        The filename of the generated HTML report
+    """
+    # Add calculated stats if not present
+    stats = data["stats"]
+    if "success_rate" not in stats:
+        stats["success_rate"] = (
+            (stats["passed_exercises"] / stats["total_exercises"]) * 100
+            if stats["total_exercises"] > 0
+            else 0
+        )
+    if "average_attempts" not in stats:
+        stats["average_attempts"] = (
+            stats["total_attempts"] / stats["total_exercises"]
+            if stats["total_exercises"] > 0
+            else 0
+        )
+
+    # Generate output filename if not provided
+    if not output_file:
+        model_name = stats["model_name"].replace(":", "_")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_file = f"benchmark_report_{model_name}_{timestamp}.html"
+
+    # Generate HTML content
+    html_content = generate_html_report_content(data)
+
+    # Write HTML file
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(html_content)
+
+    return output_file
 
 
 def main():
-    """Main function to generate HTML report."""
+    """Main function to generate HTML report from command line."""
     parser = argparse.ArgumentParser(
         description="Generate HTML report from LLM benchmark JSON results"
     )
@@ -715,30 +760,23 @@ def main():
         print(f"Loading benchmark results from {args.json_file}...")
         data = load_benchmark_results(args.json_file)
 
-        # Add calculated stats
-        stats = data["stats"]
-        stats["success_rate"] = (
-            (stats["passed_exercises"] / stats["total_exercises"]) * 100
-            if stats["total_exercises"] > 0
-            else 0
-        )
-        stats["average_attempts"] = (
-            stats["total_attempts"] / stats["total_exercises"]
-            if stats["total_exercises"] > 0
-            else 0
-        )
-
         # Generate HTML report
         print("Generating HTML report...")
-        html_content, output_file = generate_html_report(data, args.output)
-
-        # Write HTML file
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write(html_content)
+        output_file = generate_html_report_file(data, args.output)
 
         print(f"✅ HTML report generated successfully: {output_file}")
+
+        stats = data["stats"]
+        success_rate = stats.get("success_rate", 0)
+        if "success_rate" not in stats:
+            success_rate = (
+                (stats["passed_exercises"] / stats["total_exercises"]) * 100
+                if stats["total_exercises"] > 0
+                else 0
+            )
+
         print(
-            f"📊 Summary: {stats['passed_exercises']}/{stats['total_exercises']} exercises passed ({stats['success_rate']:.1f}% success rate)"
+            f"📊 Summary: {stats['passed_exercises']}/{stats['total_exercises']} exercises passed ({success_rate:.1f}% success rate)"
         )
 
     except Exception as e:

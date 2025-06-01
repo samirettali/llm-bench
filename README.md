@@ -6,8 +6,10 @@ A comprehensive Python framework for benchmarking Large Language Models (LLMs) u
 
 - **Ollama Integration**: Seamless integration with Ollama for local LLM inference
 - **Automatic Code Extraction**: Intelligent extraction of code from LLM responses
-- **Progressive Difficulty**: Basic, intermediate, and advanced programming exercises
+- **Progressive Difficulty**: Basic, intermediate, advanced, and super hard programming exercises
 - **Error Feedback Loop**: Failed attempts receive error feedback for retry
+- **Chat History Tracking**: Full conversation history for analysis
+- **Automatic HTML Reports**: Beautiful, interactive HTML reports with syntax highlighting
 - **Comprehensive Reporting**: Detailed statistics and JSON result export
 - **Colored Output**: Beautiful terminal output with progress indicators
 - **Flexible Configuration**: Customizable attempts, timeouts, and exercise selection
@@ -63,11 +65,12 @@ python run_benchmark.py <model_name> [options]
 - `model_name`: Name of the Ollama model to benchmark (required)
 
 **Options:**
-- `--difficulty {basic,intermediate,advanced,all}`: Exercise difficulty level (default: all)
+- `--difficulty {basic,intermediate,advanced,super_hard,all}`: Exercise difficulty level (default: all)
 - `--max-attempts N`: Maximum attempts per exercise (default: 3)
 - `--ollama-url URL`: Ollama API URL (default: http://localhost:11434)
 - `--quiet`: Run in quiet mode with minimal output
-- `--no-save`: Don't save results to JSON file
+- `--no-save`: Don't save results to files
+- `--json-only`: Save only JSON results (no HTML report)
 
 ### Examples
 
@@ -86,6 +89,12 @@ python run_benchmark.py llama2 --ollama-url http://192.168.1.100:11434
 
 # Run quietly without saving results
 python run_benchmark.py llama2 --quiet --no-save
+
+# Save only JSON results (no HTML report)
+python run_benchmark.py llama2 --json-only
+
+# Test super hard exercises
+python run_benchmark.py llama2 --difficulty super_hard
 ```
 
 ## Exercise Categories
@@ -270,3 +279,39 @@ Contributions are welcome! Areas for improvement:
 ## License
 
 This project is open source and available under the MIT License.
+
+## Report Generation
+
+### Automatic HTML Reports
+
+By default, the framework generates both JSON results and interactive HTML reports:
+
+```bash
+# Default: JSON + HTML reports
+python run_benchmark.py llama2
+
+# JSON only (faster, no HTML)
+python run_benchmark.py llama2 --json-only
+```
+
+### Manual HTML Generation
+
+You can also generate HTML reports manually from existing JSON results:
+
+```bash
+# Generate HTML from specific JSON file
+python generate_html_report.py benchmark_results_llama2_20241215_143022.json
+
+# Generate with custom filename
+python generate_html_report.py results.json -o custom_report.html
+```
+
+### HTML Report Features
+
+The generated HTML reports include:
+- **Interactive Design**: Responsive layout with modern styling
+- **Syntax Highlighting**: Python code with syntax highlighting and copy buttons
+- **Chat History**: Full conversation flow between user and model
+- **Statistics Dashboard**: Visual stats with success rates and timing
+- **Exercise Details**: Expandable sections with test cases and results
+- **Error Analysis**: Clear display of failed attempts and error messages

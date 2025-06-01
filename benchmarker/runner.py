@@ -4,15 +4,23 @@ Main benchmark runner that coordinates exercises and model evaluation.
 
 import time
 import json
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from dataclasses import dataclass, asdict
-from colorama import Fore, Back, Style, init
+from colorama import Fore, init
 
 from .exercise import Exercise, ExerciseResult, ExerciseStatus
 from .ollama_client import OllamaClient
 
 # Initialize colorama for cross-platform colored output
 init(autoreset=True)
+
+# Import HTML generation function
+try:
+    from generate_html_report import generate_html_report_file
+
+    HTML_GENERATION_AVAILABLE = True
+except ImportError:
+    HTML_GENERATION_AVAILABLE = False
 
 
 @dataclass
@@ -50,11 +58,13 @@ class BenchmarkRunner:
         ollama_client: Optional[OllamaClient] = None,
         verbose: bool = True,
         save_results: bool = True,
+        generate_html: bool = True,
         temperature: float = 0.0,
     ):
         self.client = ollama_client or OllamaClient()
         self.verbose = verbose
         self.save_results = save_results
+        self.generate_html = generate_html
         self.temperature = temperature
         self.exercises: List[Exercise] = []
         self.current_stats: Optional[BenchmarkStats] = None
@@ -75,7 +85,7 @@ class BenchmarkRunner:
         # TODO: improve this
         think_index = response.find("</think>")
         if think_index != -1:
-            response = response[think_index + len("</think>"):]
+            response = response[think_index + len("</think>") :]
 
         lines = response.strip().split("\n")
         code_lines = []
@@ -176,7 +186,9 @@ class BenchmarkRunner:
 
                 # Get response from model using chat interface
                 start_time = time.time()
-                response = self.client.chat(model, messages, temperature=self.temperature)
+                response = self.client.chat(
+                    model, messages, temperature=self.temperature
+                )
                 generation_time = time.time() - start_time
 
                 # Clean the response to extract only code
@@ -314,12 +326,9 @@ class BenchmarkRunner:
         print(f"{Fore.MAGENTA}{'=' * 70}")
 
     def _save_results(self, stats: BenchmarkStats):
-        """Save detailed results to a JSON file."""
+        """Save detailed results to a JSON file and generate HTML report."""
         timestamp = time.strftime("%Y%m%d_%H%M%S")
-        filename = f"benchmark_results_{stats.model_name}_{timestamp}.json"
-        filename = filename.replace(" ", "_")
-        filename = filename.replace(":", "_")
-        filename = filename.replace("/", "_")
+        json_filename = f"benchmark_results_{stats.model_name}_{timestamp}.json"
 
         # Prepare detailed results
         detailed_results = {"stats": asdict(stats), "exercises": []}
@@ -349,13 +358,49 @@ class BenchmarkRunner:
 
             detailed_results["exercises"].append(exercise_data)
 
+        # Add calculated stats to the results
+        detailed_results["stats"]["success_rate"] = stats.success_rate
+        detailed_results["stats"]["average_attempts"] = stats.average_attempts
+
         try:
-            with open(filename, "w") as f:
+            # Save JSON results
+            with open(json_filename, "w") as f:
                 json.dump(detailed_results, f, indent=2, default=str)
 
             if self.verbose:
-                print(f"\n{Fore.CYAN}Results saved to: {filename}")
+                print(f"\n{Fore.CYAN}Results saved to: {json_filename}")
                 print(f"{Fore.CYAN}📜 Chat history included for conversation analysis")
+
+            # Generate HTML report if HTML generation is available and enabled
+            if HTML_GENERATION_AVAILABLE and self.generate_html:
+                try:
+                    html_filename = generate_html_report_file(detailed_results)
+                    if self.verbose:
+                        print(f"{Fore.CYAN}📊 HTML report generated: {html_filename}")
+                        print(
+                            f"{Fore.CYAN}🎨 Interactive report with syntax highlighting and chat history"
+                        )
+                except Exception as e:
+                    if self.verbose:
+                        print(
+                            f"{Fore.YELLOW}Warning: Could not generate HTML report: {e}"
+                        )
+            elif not self.generate_html:
+                if self.verbose:
+                    print(
+                        f"{Fore.YELLOW}📄 HTML report generation disabled (JSON only)"
+                    )
+                    print(
+                        f"{Fore.YELLOW}Generate HTML manually with: python generate_html_report.py {json_filename}"
+                    )
+            else:
+                if self.verbose:
+                    print(
+                        f"{Fore.YELLOW}Note: HTML generation not available. Install requirements for HTML reports."
+                    )
+                    print(
+                        f"{Fore.YELLOW}You can generate HTML reports manually with: python generate_html_report.py {json_filename}"
+                    )
 
         except Exception as e:
             if self.verbose:
@@ -372,3 +417,67 @@ class BenchmarkRunner:
         """Reset all exercises to their initial state."""
         for exercise in self.exercises:
             exercise.reset()
+
+    def generate_html_report(self, output_file: Optional[str] = None) -> Optional[str]:
+        """
+        Generate HTML report from current benchmark results.
+
+        Args:
+            output_file: Optional output filename
+
+        Returns:
+            Generated HTML filename if successful, None otherwise
+        """
+        if not self.current_stats:
+            print(f"{Fore.RED}No benchmark results available. Run benchmark first.")
+            return None
+
+        if not HTML_GENERATION_AVAILABLE:
+            print(
+                f"{Fore.RED}HTML generation not available. Check generate_html_report.py is in the path."
+            )
+            return None
+
+        # Prepare results data
+        detailed_results = {"stats": asdict(self.current_stats), "exercises": []}
+
+        for exercise in self.exercises:
+            exercise_data = {
+                "name": exercise.name,
+                "description": exercise.description,
+                "difficulty": exercise.difficulty,
+                "max_attempts": exercise.max_attempts,
+                "attempts": exercise.attempts,
+                "completed": exercise.is_completed(),
+                "chat_history": exercise.chat_history,
+                "results": [],
+            }
+
+            for result in exercise.results:
+                result_data = {
+                    "status": result.status.value,
+                    "expected_output": result.expected_output,
+                    "actual_output": result.actual_output,
+                    "error_message": result.error_message,
+                    "execution_time": result.execution_time,
+                    "code_generated": result.code_generated,
+                }
+                exercise_data["results"].append(result_data)
+
+            detailed_results["exercises"].append(exercise_data)
+
+        # Add calculated stats
+        detailed_results["stats"]["success_rate"] = self.current_stats.success_rate
+        detailed_results["stats"]["average_attempts"] = (
+            self.current_stats.average_attempts
+        )
+
+        try:
+            html_filename = generate_html_report_file(detailed_results, output_file)
+            if self.verbose:
+                print(f"{Fore.GREEN}📊 HTML report generated: {html_filename}")
+            return html_filename
+        except Exception as e:
+            if self.verbose:
+                print(f"{Fore.RED}Error generating HTML report: {e}")
+            return None

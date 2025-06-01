@@ -38,7 +38,12 @@ def parse_arguments():
         "--quiet", action="store_true", help="Run in quiet mode (less verbose output)"
     )
     parser.add_argument(
-        "--no-save", action="store_true", help="Don't save results to file"
+        "--no-save", action="store_true", help="Don't save results to files"
+    )
+    parser.add_argument(
+        "--json-only",
+        action="store_true",
+        help="Save only JSON results (no HTML report)",
     )
     parser.add_argument(
         "--temperature", type=float, default=0.0, help="Temperature for the model"
@@ -103,7 +108,7 @@ def main():
         ollama_client=client,
         verbose=not args.quiet,
         save_results=not args.no_save,
-        temperature=args.temperature,
+        generate_html=not args.json_only,
     )
 
     # Add exercises to runner
@@ -114,9 +119,24 @@ def main():
         print(
             f"Starting benchmark for model '{args.model}' with {len(exercises)} exercises..."
         )
+
+        if not args.no_save:
+            if args.json_only:
+                print("📄 Results will be saved as JSON only")
+            else:
+                print("📊 Results will be saved as JSON + HTML report")
+
         stats = runner.run_benchmark(args.model)
 
-        # Print final summary
+        # Generate additional HTML report if requested manually
+        if args.json_only and not args.no_save:
+            if args.quiet:
+                print(f"\n💡 Tip: Generate HTML report with:")
+                print(
+                    f"python generate_html_report.py benchmark_results_{args.model}_*.json"
+                )
+
+        # Display final summary
         if args.quiet:
             print(f"\nBenchmark completed!")
             print(
