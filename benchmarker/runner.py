@@ -309,6 +309,9 @@ class BenchmarkRunner:
         """Save detailed results to a JSON file."""
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         filename = f"benchmark_results_{stats.model_name}_{timestamp}.json"
+        filename = filename.replace(" ", "_")
+        filename = filename.replace(":", "_")
+        filename = filename.replace("/", "_")
 
         # Prepare detailed results
         detailed_results = {"stats": asdict(stats), "exercises": []}
