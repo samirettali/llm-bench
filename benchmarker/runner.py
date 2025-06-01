@@ -72,6 +72,11 @@ class BenchmarkRunner:
         Clean the model's response to extract only the code.
         Removes markdown formatting and explanations.
         """
+        # TODO: improve this
+        think_index = response.find("</think>")
+        if think_index != -1:
+            response = response[think_index + len("</think>"):]
+
         lines = response.strip().split("\n")
         code_lines = []
         in_code_block = False
