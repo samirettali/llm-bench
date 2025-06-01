@@ -6,7 +6,6 @@ Converts JSON benchmark results into a formatted HTML report.
 
 import json
 import argparse
-import os
 from datetime import datetime
 from typing import Dict, Any
 
@@ -205,23 +204,23 @@ def generate_html_report(data: Dict[str, Any], output_file: str = None) -> str:
             text-transform: uppercase;
         }}
         
-        .difficulty-easy {background: linear-gradient(135deg, #4CAF50, #66BB6A);
+        .difficulty-easy {{background: linear-gradient(135deg, #4CAF50, #66BB6A);
             color: white;
-        }
+        }}
         
-        .difficulty-medium {background: linear-gradient(135deg, #FF9800, #FFB74D);
+        .difficulty-medium {{background: linear-gradient(135deg, #FF9800, #FFB74D);
             color: white;
-        }
+        }}
         
-        .difficulty-hard {background: linear-gradient(135deg, #F44336, #EF5350);
+        .difficulty-hard {{background: linear-gradient(135deg, #F44336, #EF5350);
             color: white;
-        }
+        }}
         
-        .difficulty-super_hard {background: linear-gradient(135deg, #9C27B0, #BA68C8);
+        .difficulty-super_hard {{background: linear-gradient(135deg, #9C27B0, #BA68C8);
             color: white;
             border: 2px solid #7B1FA2;
             box-shadow: 0 0 10px rgba(156, 39, 176, 0.3);
-        }
+        }}
         
         .attempt-info {{
             font-size: 0.9em;
