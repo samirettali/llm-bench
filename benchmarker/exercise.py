@@ -226,7 +226,9 @@ def create_code_execution_test(
     return test_function
 
 
-def create_solve_test(test_cases: List[Dict[str, Any]]) -> Callable[[str], ExerciseResult]:
+def create_solve_test(
+    test_cases: List[Dict[str, Any]],
+) -> Callable[[str], ExerciseResult]:
     """
     Create a test function that tests a 'solve' function with multiple test cases.
     This is the simplified, standardized approach where all exercises use 'solve' as the function name.

@@ -35,7 +35,10 @@ def get_advanced_exercises() -> List[Exercise]:
             description="Implement a function that takes a list of numbers and returns them sorted using the merge sort algorithm.",
             test_function=create_solve_test(
                 [
-                    {"input": [38, 27, 43, 3, 9, 82, 10], "output": [3, 9, 10, 27, 38, 43, 82]},
+                    {
+                        "input": [38, 27, 43, 3, 9, 82, 10],
+                        "output": [3, 9, 10, 27, 38, 43, 82],
+                    },
                     {"input": [5, 2, 8, 1, 9], "output": [1, 2, 5, 8, 9]},
                     {"input": [1], "output": [1]},
                     {"input": [], "output": []},
@@ -87,7 +90,17 @@ def get_advanced_exercises() -> List[Exercise]:
             test_function=create_solve_test(
                 [
                     {
-                        "input": ({"A": ["B", "C"], "B": ["D", "E"], "C": ["F"], "D": [], "E": ["F"], "F": []}, "A"),
+                        "input": (
+                            {
+                                "A": ["B", "C"],
+                                "B": ["D", "E"],
+                                "C": ["F"],
+                                "D": [],
+                                "E": ["F"],
+                                "F": [],
+                            },
+                            "A",
+                        ),
                         "output": ["A", "B", "C", "D", "E", "F"],
                     },
                     {
